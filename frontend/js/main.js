@@ -1,3 +1,9 @@
+console.log("✅ main.js loaded");
+
+/* ================================
+   COLLEGE AUTOCOMPLETE (SAFE)
+================================ */
+
 const colleges = [
     "ABC Engineering College",
     "XYZ University",
@@ -11,72 +17,90 @@ const colleges = [
 const input = document.getElementById("collegeInput");
 const suggestionsBox = document.getElementById("suggestions");
 
-input.addEventListener("input", function () {
-    const value = this.value.toLowerCase();
-    suggestionsBox.innerHTML = "";
+if (input && suggestionsBox) {
+    input.addEventListener("input", function () {
+        const value = this.value.toLowerCase();
+        suggestionsBox.innerHTML = "";
 
-    if (value === "") {
-        suggestionsBox.style.display = "none";
-        return;
-    }
-
-    const filtered = colleges.filter(college =>
-        college.toLowerCase().includes(value)
-    );
-
-    if (filtered.length === 0) {
-        suggestionsBox.style.display = "none";
-        return;
-    }
-
-    filtered.forEach(college => {
-        const div = document.createElement("div");
-        div.textContent = college;
-        div.onclick = () => {
-            input.value = college;
+        if (value === "") {
             suggestionsBox.style.display = "none";
-        };
-        suggestionsBox.appendChild(div);
+            return;
+        }
+
+        const filtered = colleges.filter(college =>
+            college.toLowerCase().includes(value)
+        );
+
+        if (filtered.length === 0) {
+            suggestionsBox.style.display = "none";
+            return;
+        }
+
+        filtered.forEach(college => {
+            const div = document.createElement("div");
+            div.textContent = college;
+            div.onclick = () => {
+                input.value = college;
+                suggestionsBox.style.display = "none";
+            };
+            suggestionsBox.appendChild(div);
+        });
+
+        suggestionsBox.style.display = "block";
     });
 
-    suggestionsBox.style.display = "block";
-});
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".autocomplete")) {
+            suggestionsBox.style.display = "none";
+        }
+    });
+}
 
-// Close suggestions when clicking outside
-document.addEventListener("click", (e) => {
-    if (!e.target.closest(".autocomplete")) {
-        suggestionsBox.style.display = "none";
-    }
-});
-/* Login form*/
+/* ================================
+   LOGIN
+================================ */
+
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
-    loginForm.addEventListener("submit", function (e) {
+    loginForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
 
-        if (email === "" || password === "") {
-            alert("Please fill in all fields");
-            return;
-        }
+        try {
+            const res = await fetch("http://localhost:5000/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
 
-        alert("Login successful");
-        
-        // Redirect to homepage
-        window.location.href = "index.html";
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.message || "Invalid credentials");
+                return;
+            }
+
+            alert("Login successful");
+            window.location.href = "index.html";
+
+        } catch (err) {
+            alert("Server error. Is backend running?");
+        }
     });
 }
 
+/* ================================
+   REGISTER
+================================ */
 
-/* Register form*/
 const registerForm = document.getElementById("registerForm");
 
 if (registerForm) {
-    registerForm.addEventListener("submit", function (e) {
-        e.preventDefault(); // VERY IMPORTANT
+    registerForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
 
         const name = document.getElementById("name").value.trim();
         const email = document.getElementById("regEmail").value.trim();
@@ -84,55 +108,38 @@ if (registerForm) {
         const password = document.getElementById("regPassword").value;
         const confirmPassword = document.getElementById("confirmPassword").value;
 
-        // ✅ Email validation
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        // ✅ Indian phone number validation (10 digits, starts with 6–9)
-        const phonePattern = /^[6-9]\d{9}$/;
-
-        // ✅ Strong password validation
-        const passwordPattern =
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
-        if (name === "" || email === "" || phone === "" || password === "" || confirmPassword === "") {
-            alert("All fields are required");
-            return;
-        }
-
-        if (!emailPattern.test(email)) {
-            alert("Invalid email format");
-            return;
-        }
-
-        if (!phonePattern.test(phone)) {
-            alert("Phone number must be 10 digits and start with 6-9");
-            return;
-        }
-
-        if (!passwordPattern.test(password)) {
-            alert(
-                "Password must contain:\n" +
-                "- Minimum 8 characters\n" +
-                "- One uppercase letter\n" +
-                "- One lowercase letter\n" +
-                "- One number\n" +
-                "- One special character"
-            );
-            return;
-        }
-
         if (password !== confirmPassword) {
             alert("Passwords do not match");
             return;
         }
 
-        alert("Registration successful. Please login.");
-        window.location.href = "login.html";
+        try {
+            const res = await fetch("http://localhost:5000/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, phone, password })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.message || "Registration failed");
+                return;
+            }
+
+            alert("Registration successful. Please login.");
+            window.location.href = "login.html";
+
+        } catch (err) {
+            alert("Server error. Is backend running?");
+        }
     });
 }
 
+/* ================================
+   FORGOT PASSWORD (UI ONLY)
+================================ */
 
-/*Forget password*/
 const forgotForm = document.getElementById("forgotForm");
 
 if (forgotForm) {
@@ -140,66 +147,55 @@ if (forgotForm) {
         e.preventDefault();
 
         const email = document.getElementById("forgotEmail").value.trim();
-
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (!email) {
-            alert("Please enter your email address");
+        if (!email || !emailPattern.test(email)) {
+            alert("Please enter a valid email");
             return;
         }
 
-        if (!emailPattern.test(email)) {
-            alert("Please enter a valid email address");
-            return;
-        }
-
-        alert("Password reset link sent to your email (backend to be connected)");
+        alert("Password reset link sent (backend to be connected)");
         forgotForm.reset();
     });
 }
 
-/*Rooms.*/
-const roomsList = document.getElementById("roomsList");
+/* ================================
+   ADD ROOM (WITH IMAGE UPLOAD)
+================================ */
 
-if (roomsList) {
-    const rooms = [
-        {
-            title: "2 BHK Flat near ABC Engineering College",
-            bhk: "2 BHK",
-            rent: 8000,
-            distance: "1.2 km",
-            location: "ABC College Road"
-        },
-        {
-            title: "1 BHK Room near XYZ University",
-            bhk: "1 BHK",
-            rent: 5500,
-            distance: "0.8 km",
-            location: "XYZ Nagar"
-        },
-        {
-            title: "3 BHK Apartment near City College",
-            bhk: "3 BHK",
-            rent: 12000,
-            distance: "1.5 km",
-            location: "City Center"
+document.addEventListener("DOMContentLoaded", function () {
+
+    const addRoomForm = document.getElementById("addRoomForm");
+    console.log("📌 addRoomForm:", addRoomForm);
+
+    if (!addRoomForm) return;
+
+    addRoomForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        console.log("🚀 Add room submitted");
+
+        const formData = new FormData(addRoomForm);
+
+        try {
+            const res = await fetch("http://localhost:5000/api/rooms/add", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+            console.log("📦 Response:", data);
+
+            if (!res.ok) {
+                alert(data.message || "Failed to add room");
+                return;
+            }
+
+            alert("✅ Room added successfully!");
+            addRoomForm.reset();
+
+        } catch (error) {
+            console.error("❌ Error:", error);
+            alert("Server error. Is backend running?");
         }
-    ];
-
-    rooms.forEach(room => {
-        const card = document.createElement("div");
-        card.className = "room-card";
-
-        card.innerHTML = `
-            <h3>${room.title}</h3>
-            <p><strong>BHK:</strong> ${room.bhk}</p>
-            <p><strong>Rent:</strong> ₹${room.rent} / month</p>
-            <p><strong>Distance:</strong> ${room.distance}</p>
-            <p><strong>Location:</strong> ${room.location}</p>
-            <button>View Details</button>
-        `;
-
-        roomsList.appendChild(card);
     });
-}
-
+});
