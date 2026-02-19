@@ -1,0 +1,187 @@
+/* 🔥 Reset default browser spacing */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  background: #f4f6f8;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.room-details-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 20px;   /* prevents touching screen edge */
+}
+
+
+/* IMAGE GALLERY */
+.room-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.room-gallery img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;   /* removes inline-gap */
+}
+
+
+.room-gallery img:hover {
+  transform: scale(1.05);
+}
+
+/* DETAILS CARD */
+.room-details-card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.price {
+  font-size: 24px;
+  color: #2563eb;
+  margin: 10px 0;
+  font-weight: 600;
+}
+
+.description {
+  margin: 20px 0;
+  line-height: 1.6;
+  color: #444;
+}
+
+/* ✅ AMENITIES */
+.amenities-section {
+  margin-top: 25px;
+}
+
+.amenities-section h3 {
+  margin-bottom: 10px;
+}
+
+.amenities-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.amenity-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.no-amenities {
+  color: #777;
+}
+
+/* OWNER CARD */
+.owner-card {
+  margin-top: 35px;
+  padding: 20px;
+  border-radius: 10px;
+  background: #f1f5f9;
+}
+
+.contact-buttons {
+  margin-top: 15px;
+}
+
+.contact-buttons a {
+  display: inline-block;
+  margin-right: 15px;
+  padding: 10px 16px;
+  background: #2563eb;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: 0.3s ease;
+}
+
+.contact-buttons a:hover {
+  background: #1e40af;
+}
+
+/* MAP */
+.map-section {
+  margin-top: 35px;
+  width: 100%;
+  overflow: hidden;   /* prevents white edge */
+}
+
+
+.map-section h3 {
+  margin-bottom: 12px;
+}
+
+/* LOADING / ERROR */
+.loading,
+.error {
+  text-align: center;
+  margin: 80px;
+  font-size: 20px;
+}
+/* HOW IT WORKS SECTION */
+.how-it-works {
+  margin-top: 45px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.how-it-works h3 {
+  margin-bottom: 20px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.step {
+  background: #f8fafc;
+  padding: 18px;
+  border-radius: 10px;
+  transition: 0.25s ease;
+}
+
+.step:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+.step span {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background: #2563eb;
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.step h4 {
+  margin-bottom: 6px;
+}
+
+.step p {
+  font-size: 14px;
+  color: #555;
+}

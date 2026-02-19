@@ -1,101 +1,116 @@
-const db = require("../db");
-const bcrypt = require("bcrypt");
+const User = require("../models/User");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-// 🔐 REGISTER CONTROLLER WITH FULL VALIDATION
-exports.register = (req, res) => {
-    const { name, email, phone, password } = req.body;
+/* ================= REGISTER ================= */
+const register = async (req, res) => {
+  try {
+    const { name, email, phone, password, role } = req.body;
 
-    // 🔒 Validation regex
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phonePattern = /^[6-9]\d{9}$/;
-    const passwordPattern =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
-    // ❌ Empty fields check
-    if (!name || !email || !phone || !password) {
-        return res.status(400).json({
-            message: "All fields are required"
-        });
+    if (!name || !email || !phone || !password || !role) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    // ❌ Email validation
-    if (!emailPattern.test(email)) {
-        return res.status(400).json({
-            message: "Invalid email format"
-        });
+    // Only students need college email
+    if (role === "student" && !email.endsWith("@aitpune.edu.in")) {
+      return res.status(400).json({
+        message: "Students must register using college email (@aitpune.edu.in)"
+      });
     }
 
-    // ❌ Phone validation
-    if (!phonePattern.test(phone)) {
-        return res.status(400).json({
-            message: "Phone number must be 10 digits and start with 6-9"
-        });
-    }
-
-    // ❌ Password validation
-    if (!passwordPattern.test(password)) {
-        return res.status(400).json({
-            message:
-                "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
-        });
-    }
-
-    // 🔐 Hash password
-    const hashedPassword = bcrypt.hashSync(password, 10);
-
-    const sql =
-        "INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)";
-
-    db.query(sql, [name, email, phone, hashedPassword], (err) => {
-        if (err) {
-            // Duplicate email check
-            if (err.code === "ER_DUP_ENTRY") {
-                return res.status(409).json({
-                    message: "Email already registered"
-                });
-            }
-
-            return res.status(500).json({
-                message: "Database error"
-            });
-        }
-
-        res.json({
-            message: "User registered successfully"
-        });
+    const existingUser = await User.findOne({
+      $or: [{ email }, { phone }]
     });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Email or phone already registered"
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters"
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      name,
+      email,
+      phone,
+      password: hashedPassword,
+      role
+    });
+
+    res.status(201).json({
+      message: "Registration successful",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (error) {
+    console.error("REGISTER ERROR:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
-// 🔐 LOGIN CONTROLLER (UNCHANGED, BUT CLEAN)
-exports.login = (req, res) => {
+/* ================= LOGIN ================= */
+const login = async (req, res) => {
+  try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({
-            message: "Email and password are required"
-        });
+      return res.status(400).json({
+        message: "Email and password required"
+      });
     }
 
-    const sql = "SELECT * FROM users WHERE email = ?";
+    const user = await User.findOne({ email });
 
-    db.query(sql, [email], (err, results) => {
-        if (err || results.length === 0) {
-            return res.status(401).json({
-                message: "Invalid credentials"
-            });
-        }
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid credentials"
+      });
+    }
 
-        const user = results[0];
-        const isMatch = bcrypt.compareSync(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
 
-        if (!isMatch) {
-            return res.status(401).json({
-                message: "Invalid credentials"
-            });
-        }
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Invalid credentials"
+      });
+    }
 
-        res.json({
-            message: "Login successful"
-        });
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
+
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = {
+  register,
+  login
 };

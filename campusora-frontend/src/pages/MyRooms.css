@@ -1,0 +1,50 @@
+.myrooms-page {
+  padding: 60px 40px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.myrooms-page h2 {
+  text-align: center;
+  font-size: 32px;
+  margin-bottom: 40px;
+}
+
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 25px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.room-card {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease;
+}
+
+.room-card:hover {
+  transform: translateY(-6px);
+}
+
+.room-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.room-info {
+  padding: 16px;
+}
+
+.room-info h3 {
+  margin-bottom: 6px;
+}
+
+.room-info p {
+  color: #555;
+  font-size: 14px;
+}

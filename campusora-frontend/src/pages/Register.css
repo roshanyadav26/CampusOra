@@ -1,0 +1,58 @@
+.register-page {
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+}
+
+.register-overlay {
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.register-form {
+  background: white;
+  padding: 40px;
+  width: 380px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
+
+.register-form h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: 700;
+}
+
+.register-form input,
+.register-form select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.register-form select {
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.register-form button {
+  width: 100%;
+  padding: 12px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.register-form button:hover {
+  background: #1e40af;
+}
