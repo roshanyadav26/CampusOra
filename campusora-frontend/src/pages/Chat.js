@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import socket from "../socket";
@@ -6,7 +6,6 @@ import "./Chat.css";
 
 function Chat() {
   const location = useLocation();
-  const roomData = location.state;
 
   const [conversations, setConversations] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
@@ -18,74 +17,94 @@ function Chat() {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
 
-  /* ================= REGISTER USER SOCKET ================= */
+  /* ================= REGISTER SOCKET USER ================= */
   useEffect(() => {
-    if (user?.id) {
-      socket.emit("registerUser", user.id);
-    }
-  }, [user]);
-
-  /* ================= LOAD CONVERSATIONS ================= */
-  useEffect(() => {
-    const loadConversations = async () => {
-      try {
-        const res = await axios.get(
-          "http://localhost:5000/api/chat/conversations",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        setConversations(res.data);
-
-        if (roomData) {
-          loadMessages(roomData);
-        }
-      } catch (err) {
-        console.error("Conversation load error:", err);
-      }
-    };
-
-    loadConversations();
-  }, []);
+  if (user?.id) {
+    socket.emit("registerUser", user.id);
+  }
+}, []); // ← IMPORTANT
 
   /* ================= LOAD MESSAGES ================= */
-  const loadMessages = async (chat) => {
-    try {
-      setActiveChat(chat);
+ const loadMessages = useCallback(async (chat) => {
+  try {
+    setActiveChat(chat);
 
+    const res = await axios.get(
+      `http://localhost:5000/api/chat/${chat.roomId}/${chat.ownerId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    setMessages(res.data);
+
+  } catch (err) {
+    console.error("Message load error:", err);
+  }
+}, [token]);
+  /* ================= LOAD CONVERSATIONS ================= */
+  const loadConversations = useCallback(async () => {
+    try {
       const res = await axios.get(
-        `http://localhost:5000/api/chat/${chat.roomId}`,
+        "http://localhost:5000/api/chat/conversations",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      setMessages(res.data);
+      setConversations(res.data);
     } catch (err) {
-      console.error("Message load error:", err);
+      console.error("Conversation load error:", err);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    loadConversations();
+  }, [loadConversations]);
+
+  /* ================= AUTO OPEN CHAT ================= */
+  useEffect(() => {
+    if (!location.state?.roomId) return;
+
+    const newChat = {
+      roomId: location.state.roomId,
+      ownerId: location.state.ownerId,
+      ownerName: location.state.ownerName,
+      roomTitle: location.state.roomTitle,
+    };
+
+    setMessages([]);
+
+    setConversations((prev) => {
+      const exists = prev.find(
+        (c) => c.roomId === newChat.roomId
+      );
+      return exists ? prev : [newChat, ...prev];
+    });
+
+    loadMessages(newChat);
+  }, [location.state, loadMessages]);
 
   /* ================= SOCKET RECEIVE ================= */
   useEffect(() => {
-    socket.on("receiveMessage", (msg) => {
-      console.log("📩 Received:", msg);
+    const handleReceive = (msg) => {
+      if (!activeChat) return;
 
-      // Only append if message belongs to current chat
-      if (activeChat && msg.room === activeChat.roomId) {
+      if (msg.room === activeChat.roomId) {
         setMessages((prev) => [...prev, msg]);
       }
-    });
-
-    return () => {
-      socket.off("receiveMessage");
     };
+
+    socket.on("receiveMessage", handleReceive);
+
+    return () => socket.off("receiveMessage", handleReceive);
   }, [activeChat]);
 
   /* ================= AUTO SCROLL ================= */
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
   }, [messages]);
 
   /* ================= SEND MESSAGE ================= */
@@ -94,12 +113,9 @@ function Chat() {
 
     let receiverId;
 
-    // If student → send to owner
     if (user.role === "student") {
       receiverId = activeChat.ownerId;
-    } 
-    // If owner → send to student (detect from last message)
-    else {
+    } else {
       const lastMsg = messages[messages.length - 1];
       if (!lastMsg) return;
 
@@ -116,8 +132,6 @@ function Chat() {
       receiverId = senderId === user.id ? receiver : senderId;
     }
 
-    if (!receiverId) return;
-
     socket.emit("sendMessage", {
       roomId: activeChat.roomId,
       senderId: user.id,
@@ -132,7 +146,7 @@ function Chat() {
     <div className="chat-page">
       <div className="chat-container">
 
-        {/* ===== SIDEBAR ===== */}
+        {/* SIDEBAR */}
         <div className="chat-sidebar">
           <h2>Your Conversations</h2>
 
@@ -140,12 +154,13 @@ function Chat() {
             <p className="empty-text">No conversations yet</p>
           )}
 
-          {conversations.map((chat, index) => (
+          {conversations.map((chat, i) => (
             <div
-              key={index}
+              key={i}
               className={`chat-user ${
-                activeChat?.roomId === chat.roomId ? "active" : ""
-              }`}
+activeChat?.roomId === chat.roomId &&
+activeChat?.ownerId === chat.ownerId ? "active" : ""
+}`}        
               onClick={() => loadMessages(chat)}
             >
               <div className="avatar">
@@ -160,12 +175,10 @@ function Chat() {
           ))}
         </div>
 
-        {/* ===== CHAT AREA ===== */}
+        {/* CHAT AREA */}
         <div className="chat-main">
           {!activeChat ? (
-            <div className="no-chat">
-              Select a conversation
-            </div>
+            <div className="no-chat">Select a conversation</div>
           ) : (
             <>
               <div className="chat-header">
@@ -179,8 +192,7 @@ function Chat() {
               </div>
 
               <div className="chat-messages">
-                {messages.map((msg, index) => {
-
+                {messages.map((msg, i) => {
                   const senderId =
                     typeof msg.sender === "object"
                       ? msg.sender._id
@@ -188,11 +200,9 @@ function Chat() {
 
                   return (
                     <div
-                      key={index}
+                      key={i}
                       className={`message ${
-                        senderId === user.id
-                          ? "sent"
-                          : "received"
+                        senderId === user.id ? "sent" : "received"
                       }`}
                     >
                       <div className="bubble">{msg.text}</div>
@@ -204,19 +214,19 @@ function Chat() {
 
               <div className="chat-input">
                 <input
-                  type="text"
-                  placeholder="Type a message..."
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) =>
                     e.key === "Enter" && sendMessage()
                   }
+                  placeholder="Type a message..."
                 />
                 <button onClick={sendMessage}>Send</button>
               </div>
             </>
           )}
         </div>
+
       </div>
     </div>
   );

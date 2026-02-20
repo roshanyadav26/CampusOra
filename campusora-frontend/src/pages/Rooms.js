@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Rooms.css";
@@ -8,62 +8,53 @@ function Rooms() {
   const [filters, setFilters] = useState({
     maxRent: "",
     bhk: "",
-    location: ""
+    location: "",
+    wifi: false,
+    parking: false,
+    furnished: false,
+    sort: "",
   });
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchRooms();
-  }, []);
-
-  const fetchRooms = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:5000/api/rooms"
-      );
-      setRooms(res.data);
-    } catch (err) {
-      console.log("Fetch error:", err);
-    }
-  };
-
-  const applyFilters = async () => {
+  /* ================= FETCH ROOMS ================= */
+  const fetchRooms = useCallback(async () => {
     try {
       const res = await axios.get(
         "http://localhost:5000/api/rooms",
         { params: filters }
       );
+
       setRooms(res.data);
     } catch (err) {
-      console.log("Filter error:", err);
+      console.log("Fetch error:", err);
     }
-  };
+  }, [filters]);
+
+  /* ================= AUTO FILTER ================= */
+  useEffect(() => {
+    fetchRooms();
+  }, [fetchRooms]);
 
   return (
     <div className="rooms-page">
 
-      {/* FILTER BAR */}
+      {/* ===== FILTER BAR ===== */}
       <div className="filters">
+
         <input
           type="number"
           placeholder="Max Rent (₹)"
           value={filters.maxRent}
-          onChange={e =>
-            setFilters({
-              ...filters,
-              maxRent: e.target.value
-            })
+          onChange={(e) =>
+            setFilters({ ...filters, maxRent: e.target.value })
           }
         />
 
         <select
           value={filters.bhk}
-          onChange={e =>
-            setFilters({
-              ...filters,
-              bhk: e.target.value
-            })
+          onChange={(e) =>
+            setFilters({ ...filters, bhk: e.target.value })
           }
         >
           <option value="">BHK</option>
@@ -76,57 +67,108 @@ function Rooms() {
           type="text"
           placeholder="Location"
           value={filters.location}
-          onChange={e =>
-            setFilters({
-              ...filters,
-              location: e.target.value
-            })
+          onChange={(e) =>
+            setFilters({ ...filters, location: e.target.value })
           }
         />
 
-        <button onClick={applyFilters}>
-          Apply Filters
-        </button>
+        <label>
+          <input
+            type="checkbox"
+            checked={filters.wifi}
+            onChange={(e) =>
+              setFilters({ ...filters, wifi: e.target.checked })
+            }
+          />
+          Wifi
+        </label>
+
+        <label>
+          <input
+            type="checkbox"
+            checked={filters.parking}
+            onChange={(e) =>
+              setFilters({ ...filters, parking: e.target.checked })
+            }
+          />
+          Parking
+        </label>
+
+        <label>
+          <input
+            type="checkbox"
+            checked={filters.furnished}
+            onChange={(e) =>
+              setFilters({ ...filters, furnished: e.target.checked })
+            }
+          />
+          Furnished
+        </label>
+
+        <select
+          value={filters.sort}
+          onChange={(e) =>
+            setFilters({ ...filters, sort: e.target.value })
+          }
+        >
+          <option value="">Sort</option>
+          <option value="rentLow">Price Low → High</option>
+          <option value="rentHigh">Price High → Low</option>
+        </select>
+
       </div>
 
-      {/* ROOMS GRID */}
+      {/* ===== ROOM GRID ===== */}
       <div className="room-grid">
         {rooms.length === 0 ? (
-          <p style={{ textAlign: "center" }}>
-            No rooms found
-          </p>
+          <p>No rooms found</p>
         ) : (
-          rooms.map(room => (
+          rooms.map((room) => (
             <div className="room-card" key={room._id}>
+
+              {/* PRICE BADGE (CORRECT POSITION) */}
+              <div className="price-badge">
+                ₹{room.rent}/month
+              </div>
+
               <img
                 src={
                   room.images?.length
-                    ? `http://localhost:5000/${room.images[0].replace(/\\/g, "/")}`
+                    ? `http://localhost:5000/${room.images[0]}`
                     : "/placeholder-room.jpg"
                 }
                 alt="room"
               />
 
               <div className="room-info">
-  <h3>{room.title}</h3>
+                <h3>{room.title}</h3>
+                <p className="bhk-tag">
+  🏠 {room.bhk || "N/A"} BHK
+</p>
 
-  <p className="price">
-    ₹{room.rent} / month
-  </p>
+                <p className="location">
+  📍 {room.address || "Location not available"}
+</p>
 
-  <p>
-    📍 {room.address || "Location not available"}
-  </p>
 
-  <button
-    onClick={() =>
-      navigate(`/room/${room._id}`)
-    }
-  >
-    View Details
-  </button>
-</div>
+                <div className="amenities">
+                  {room.amenities?.wifi && (
+                    <span className="amenity-badge">Wifi</span>
+                  )}
+                  {room.amenities?.parking && (
+                    <span className="amenity-badge">Parking</span>
+                  )}
+                  {room.amenities?.furnished && (
+                    <span className="amenity-badge">Furnished</span>
+                  )}
+                </div>
 
+                <button
+                  onClick={() => navigate(`/room/${room._id}`)}
+                >
+                  View Details
+                </button>
+              </div>
             </div>
           ))
         )}

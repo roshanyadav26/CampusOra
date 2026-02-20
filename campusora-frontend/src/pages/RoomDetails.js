@@ -31,6 +31,7 @@ function RoomDetails() {
   if (!room) return <p>Room not found</p>;
   if (!isLoaded) return <p>Loading map...</p>;
 
+  const images = room.images || [];
   const lat = room.location?.coordinates?.[1];
   const lng = room.location?.coordinates?.[0];
 
@@ -39,103 +40,112 @@ function RoomDetails() {
 
   return (
     <div className="room-details-page">
-      
-      {/* ================= IMAGE GALLERY ================= */}
-      <div className="room-gallery">
-        {room.images?.length > 0 ? (
-          room.images.map((img, i) => (
+
+      {/* ===== IMAGE GALLERY ===== */}
+      <div className="gallery">
+        <img
+          className="main-image"
+          src={`http://localhost:5000/${images[0]}`}
+          alt=""
+        />
+
+        <div className="side-images">
+          {images.slice(1,3).map((img, i) => (
             <img
               key={i}
-              src={`http://localhost:5000/${img.replace(/\\/g, "/")}`}
-              alt="Room"
+              src={`http://localhost:5000/${img}`}
+              alt=""
             />
-          ))
-        ) : (
-          <p>No images available</p>
-        )}
+          ))}
+        </div>
       </div>
 
-      <div className="room-details-card">
-        <h1>{room.title}</h1>
-        <p className="price">₹{room.rent} / month</p>
+      {/* ===== CONTENT ===== */}
+      <div className="details-container">
 
-        {/* ✅ Show Address Instead of Coordinates */}
-        <p>
-          <strong>Location:</strong>{" "}
-          {room.address || "Location not available"}
-        </p>
+        {/* LEFT */}
+        <div className="left-section">
+          <h1>{room.title}</h1>
 
-        <p>{room.description}</p>
+          <p className="price">₹{room.rent} / month</p>
 
-        {/* ================= CHAT BUTTON ================= */}
-        {currentUser && isStudent && !isOwner && (
-          <button
-            className="chat-btn"
-            onClick={() =>
-              navigate("/chat", {
-                state: {
-                  roomId: room._id,
-                  ownerId: room.owner._id,
-                  ownerName: room.owner.name,
-                  roomTitle: room.title,
-                },
-              })
-            }
-          >
-            💬 Chat With Owner
-          </button>
-        )}
+          <p className="location">
+            📍 {room.address}
+          </p>
 
-        {/* ================= AMENITIES ================= */}
-        <h3>Room Amenities</h3>
+          <p className="description">{room.description}</p>
 
-        {room.amenities &&
-        Object.values(room.amenities).some((value) => value === true) ? (
-          <div className="amenities-list">
-            {Object.entries(room.amenities)
-              .filter(([_, value]) => value === true)
-              .map(([key]) => (
-                <span key={key} className="amenity-badge">
-                  {key
-                    .replace(/([A-Z])/g, " $1")
-                    .replace(/^./, (str) => str.toUpperCase())}
-                </span>
-              ))}
+          <h3>Room Amenities</h3>
+
+          <div className="amenities">
+            {room.amenities &&
+              Object.entries(room.amenities)
+                .filter(([_, v]) => v)
+                .map(([key]) => (
+                  <span key={key}>
+                    {key
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (s) => s.toUpperCase())}
+                  </span>
+                ))}
           </div>
-        ) : (
-          <p>No amenities listed</p>
-        )}
 
-        {/* ================= OWNER DETAILS ================= */}
-        <div className="owner-card">
-          <h3>Owner Details</h3>
-          <p><strong>Name:</strong> {room.owner?.name}</p>
-          <p><strong>Phone:</strong> {room.owner?.phone || "Not available"}</p>
-
-          {currentUser && isStudent && !isOwner && room.owner?.phone && (
-            <div className="owner-actions">
-              <a href={`tel:${room.owner.phone}`}>📞 Call</a>
-              <a
-                href={`https://wa.me/91${room.owner.phone}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                💬 WhatsApp
-              </a>
-            </div>
+          {/* MAP */}
+          {lat && lng && (
+            <GoogleMap
+              center={{ lat: Number(lat), lng: Number(lng) }}
+              zoom={15}
+              mapContainerStyle={{
+                width: "100%",
+                height: "300px",
+                marginTop: "25px",
+                borderRadius: "14px",
+              }}
+            >
+              <Marker position={{ lat: Number(lat), lng: Number(lng) }} />
+            </GoogleMap>
           )}
         </div>
 
-        {/* ================= GOOGLE MAP ================= */}
-        {lat && lng && (
-          <GoogleMap
-            center={{ lat: Number(lat), lng: Number(lng) }}
-            zoom={15}
-            mapContainerStyle={{ height: "300px", width: "100%", marginTop: "20px" }}
-          >
-            <Marker position={{ lat: Number(lat), lng: Number(lng) }} />
-          </GoogleMap>
-        )}
+        {/* RIGHT CARD */}
+        <div className="right-section">
+          <h3>Owner Details</h3>
+
+          <p><strong>Name:</strong> {room.owner?.name}</p>
+          <p><strong>Phone:</strong> {room.owner?.phone}</p>
+
+          {currentUser && isStudent && !isOwner && (
+          <button
+  className="chat-btn"
+  onClick={() =>
+    navigate("/chat", {
+      state: {
+        roomId: room._id,
+        ownerId: room.owner._id,
+        ownerName: room.owner.name,
+        roomTitle: room.title,
+        directOpen: true,
+      },
+    })
+  }
+>
+  💬 Chat With Owner
+</button>
+
+          )}
+
+          <div className="owner-actions">
+            <a href={`tel:${room.owner?.phone}`}>📞 Call</a>
+            <a
+              href={`https://wa.me/91${room.owner?.phone}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              💬 WhatsApp
+            </a>
+          </div>
+        </div>
+
       </div>
     </div>
   );

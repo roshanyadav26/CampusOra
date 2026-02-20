@@ -8,6 +8,10 @@ const roomSchema = new mongoose.Schema(
     },
 
     description: String,
+    bhk: {
+  type: Number,
+  required: true,
+},
 
     rent: {
       type: Number,

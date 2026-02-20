@@ -4,7 +4,7 @@ import axios from "axios";
 import LocationPicker from "../components/LocationPicker";
 import "./AddRoom.css";
 
-/* LEAFLET FIX */
+/* ===== LEAFLET FIX ===== */
 import L from "leaflet";
 import markerIcon from "../assets/leaflet/marker-icon.png";
 import markerIcon2x from "../assets/leaflet/marker-icon-2x.png";
@@ -21,9 +21,11 @@ L.Icon.Default.mergeOptions({
 function AddRoom() {
   const navigate = useNavigate();
 
+  /* ===== FORM DATA ===== */
   const [formData, setFormData] = useState({
     title: "",
     rent: "",
+    bhk: "",   // ⭐ NEW
     description: "",
   });
 
@@ -49,12 +51,15 @@ function AddRoom() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  /* HANDLE TEXT INPUT */
+  /* ===== HANDLE INPUT ===== */
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  /* HANDLE AMENITIES */
+  /* ===== HANDLE AMENITIES ===== */
   const handleAmenityChange = (e) => {
     setAmenities({
       ...amenities,
@@ -62,24 +67,28 @@ function AddRoom() {
     });
   };
 
-  /* HANDLE IMAGES */
+  /* ===== HANDLE IMAGES ===== */
   const handleImageChange = (e) => {
-  if (e.target.files && e.target.files.length > 0) {
-    setImages(e.target.files);  // keep as FileList
-  }
-};
+    if (e.target.files?.length > 0) {
+      setImages(e.target.files);
+    }
+  };
 
-
-  /* HANDLE SUBMIT */
+  /* ===== SUBMIT ROOM ===== */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.rent || !formData.description) {
+    if (
+      !formData.title ||
+      !formData.rent ||
+      !formData.bhk ||
+      !formData.description
+    ) {
       return setError("Please fill all required fields");
     }
 
     if (!locationData.lat || !locationData.lng) {
-      return setError("Please select the room location");
+      return setError("Please select room location");
     }
 
     if (images.length === 0) {
@@ -93,34 +102,41 @@ function AddRoom() {
 
     data.append("title", formData.title);
     data.append("rent", formData.rent);
+    data.append("bhk", formData.bhk); // ⭐ NEW
     data.append("description", formData.description);
+
     data.append("location", locationData.location);
     data.append("lat", locationData.lat);
     data.append("lng", locationData.lng);
 
-    // Send amenities as JSON object
     data.append("amenities", JSON.stringify(amenities));
 
-    // Append multiple images
-   Array.from(images).forEach((image) => {
-  data.append("images", image);
-});
-
+    Array.from(images).forEach((img) => {
+      data.append("images", img);
+    });
 
     try {
-      await axios.post("http://localhost:5000/api/rooms", data, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axios.post(
+        "http://localhost:5000/api/rooms",
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(
+              "token"
+            )}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       alert("Room added successfully ✅");
       navigate("/rooms");
 
     } catch (err) {
       console.log(err.response?.data);
-      setError(err.response?.data?.message || "Failed to add room");
+      setError(
+        err.response?.data?.message || "Failed to add room"
+      );
     } finally {
       setLoading(false);
     }
@@ -134,6 +150,8 @@ function AddRoom() {
         {error && <p className="error">{error}</p>}
 
         <form onSubmit={handleSubmit}>
+          
+          {/* TITLE */}
           <input
             type="text"
             name="title"
@@ -142,6 +160,7 @@ function AddRoom() {
             onChange={handleChange}
           />
 
+          {/* RENT */}
           <input
             type="number"
             name="rent"
@@ -150,6 +169,20 @@ function AddRoom() {
             onChange={handleChange}
           />
 
+          {/* ⭐ BHK DROPDOWN */}
+          <select
+            name="bhk"
+            value={formData.bhk}
+            onChange={handleChange}
+          >
+            <option value="">Select BHK *</option>
+            <option value="1">1 BHK</option>
+            <option value="2">2 BHK</option>
+            <option value="3">3 BHK</option>
+            <option value="4">4 BHK</option>
+          </select>
+
+          {/* DESCRIPTION */}
           <textarea
             name="description"
             placeholder="Room Description *"
@@ -157,6 +190,7 @@ function AddRoom() {
             onChange={handleChange}
           />
 
+          {/* AMENITIES */}
           <h4>Room Amenities</h4>
           <div className="amenities-grid">
             {Object.keys(amenities).map((key) => (
@@ -169,18 +203,24 @@ function AddRoom() {
                 />
                 {key
                   .replace(/([A-Z])/g, " $1")
-                  .replace(/^./, (str) => str.toUpperCase())}
+                  .replace(/^./, (s) =>
+                    s.toUpperCase()
+                  )}
               </label>
             ))}
           </div>
 
+          {/* LOCATION */}
           <h4>Select Room Location</h4>
           <LocationPicker setLocationData={setLocationData} />
 
           <p className="selected-location">
-            📍 {locationData.location || "Move pin to set location"}
+            📍{" "}
+            {locationData.location ||
+              "Move pin to set location"}
           </p>
 
+          {/* IMAGES */}
           <input
             type="file"
             multiple
@@ -188,6 +228,7 @@ function AddRoom() {
             onChange={handleImageChange}
           />
 
+          {/* SUBMIT */}
           <button type="submit" disabled={loading}>
             {loading ? "Adding..." : "Add Room"}
           </button>

@@ -9,6 +9,7 @@ const addRoom = async (req, res) => {
       title,
       description,
       rent,
+      bhk,
       lat,
       lng,
       location,
@@ -25,7 +26,7 @@ const addRoom = async (req, res) => {
       ? req.files.map((file) => file.path)
       : [];
 
-    // 🔥 VERY IMPORTANT: parse amenities safely
+    // Parse amenities safely
     let parsedAmenities = {};
     if (amenities) {
       try {
@@ -33,7 +34,7 @@ const addRoom = async (req, res) => {
           typeof amenities === "string"
             ? JSON.parse(amenities)
             : amenities;
-      } catch (err) {
+      } catch {
         parsedAmenities = {};
       }
     }
@@ -41,14 +42,13 @@ const addRoom = async (req, res) => {
     const newRoom = new Room({
       title,
       description,
-      rent,
+      rent:Number(rent),bhk:Number(bhk),
       images: imagePaths,
       owner: req.user._id,
 
-      // ✅ Save readable location
+      // readable address
       address: location || "",
 
-      // ✅ Save amenities correctly
       amenities: parsedAmenities,
 
       location: {
@@ -66,45 +66,55 @@ const addRoom = async (req, res) => {
   }
 };
 
-
 /* =========================
-   GET ALL ROOMS
+   GET ALL ROOMS (SMART FILTERS)
 ========================= */
 const getRooms = async (req, res) => {
   try {
     const {
-      minRent,
       maxRent,
-      genderPreference,
-      sharingType,
+      bhk,
+      location,
+      wifi,
+      parking,
       furnished,
+      sort,
     } = req.query;
 
-    let filter = {};
+    let query = {};
 
-    if (minRent || maxRent) {
-      filter.rent = {};
-      if (minRent) filter.rent.$gte = Number(minRent);
-      if (maxRent) filter.rent.$lte = Number(maxRent);
+    /* RENT FILTER */
+    if (maxRent) {
+      query.rent = { $lte: Number(maxRent) };
     }
 
-    if (genderPreference) {
-      filter.genderPreference = genderPreference;
+    /* BHK */
+    if (bhk) {
+      query.bhk = Number(bhk);
     }
 
-    if (sharingType) {
-      filter.sharingType = sharingType;
+    /* LOCATION SEARCH */
+    if (location) {
+      query.address = { $regex: location, $options: "i" };
     }
 
-    if (furnished !== undefined) {
-      filter.furnished = furnished === "true";
-    }
+    /* AMENITIES */
+    if (wifi === "true") query["amenities.wifi"] = true;
+    if (parking === "true") query["amenities.parking"] = true;
+    if (furnished === "true") query["amenities.furnished"] = true;
 
-    const rooms = await Room.find(filter)
+    /* SORTING */
+    let sortOption = { createdAt: -1 };
+
+    if (sort === "rentLow") sortOption = { rent: 1 };
+    if (sort === "rentHigh") sortOption = { rent: -1 };
+
+    const rooms = await Room.find(query)
       .populate("owner", "name email phone")
-      .sort({ createdAt: -1 });
+      .sort(sortOption);
 
     res.json(rooms);
+
   } catch (error) {
     console.error("GET ROOMS ERROR:", error);
     res.status(500).json({ message: "Error fetching rooms" });
@@ -127,7 +137,7 @@ const getRoomById = async (req, res) => {
 
     res.json(room);
   } catch (error) {
-    console.error("GET ROOM BY ID ERROR:", error);
+    console.error("GET ROOM ERROR:", error);
     res.status(500).json({ message: "Error fetching room" });
   }
 };
@@ -158,6 +168,7 @@ const getNearbyRooms = async (req, res) => {
     }).populate("owner", "name email phone");
 
     res.json(rooms);
+
   } catch (error) {
     console.error("NEARBY ROOMS ERROR:", error);
     res.status(500).json({ message: "Error fetching nearby rooms" });
@@ -175,7 +186,7 @@ const getMyRooms = async (req, res) => {
 
     res.json(rooms);
   } catch (error) {
-    console.error("GET MY ROOMS ERROR:", error);
+    console.error("MY ROOMS ERROR:", error);
     res.status(500).json({ message: "Error fetching your rooms" });
   }
 };
@@ -198,12 +209,16 @@ const deleteRoom = async (req, res) => {
     await room.deleteOne();
 
     res.json({ message: "Room deleted successfully" });
+
   } catch (error) {
     console.error("DELETE ROOM ERROR:", error);
     res.status(500).json({ message: "Error deleting room" });
   }
 };
 
+/* =========================
+   EXPORTS
+========================= */
 module.exports = {
   addRoom,
   getRooms,

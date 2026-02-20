@@ -1,84 +1,105 @@
+/* ===== PAGE ===== */
 .addroom-page {
+  background: linear-gradient(135deg,#eef2ff,#f8fafc);
   min-height: 100vh;
-  background: #f4f6f8;
+  padding: 40px 20px;
   display: flex;
   justify-content: center;
-  align-items: center;
 }
 
+/* ===== CARD ===== */
 .addroom-card {
-  background: white;
+  width: 100%;
+  max-width: 900px;
+  background: #fff;
+  border-radius: 18px;
   padding: 35px;
-  width: 420px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
 }
 
 .addroom-card h2 {
-  text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
 }
 
+/* ===== INPUTS ===== */
 .addroom-card input,
-.addroom-card textarea {
+.addroom-card textarea,
+.addroom-card select {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  transition: 0.2s;
 }
 
-.addroom-card textarea {
+.addroom-card input:focus,
+.addroom-card textarea:focus,
+.addroom-card select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
+  outline: none;
+}
+
+/* ===== TEXTAREA ===== */
+textarea {
+  min-height: 120px;
   resize: none;
-  height: 90px;
 }
 
-.addroom-card button {
-  width: 100%;
-  padding: 12px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.addroom-card button:hover {
-  background: #1e40af;
-}
-
-.error {
-  color: red;
-  margin-bottom: 10px;
-  text-align: center;
-}
+/* ===== AMENITIES GRID ===== */
 .amenities-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
+  gap: 12px;
   margin-bottom: 20px;
 }
 
 .amenity-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  background: #f3f4f6;
+  padding: 10px 12px;
+  border-radius: 10px;
   font-size: 14px;
-  background: #f8fafc;
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ===== LOCATION TEXT ===== */
+.selected-location {
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+/* ===== BUTTON ===== */
+.addroom-card button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg,#2563eb,#1d4ed8);
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.2s;
 }
 
-.amenity-item:hover {
-  background: #e0f2fe;
+.addroom-card button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37,99,235,0.3);
 }
 
-.amenity-item input {
-  width: 16px;
-  height: 16px;
+/* ERROR */
+.error {
+  color: red;
+  margin-bottom: 12px;
 }
