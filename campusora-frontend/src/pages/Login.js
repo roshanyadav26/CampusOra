@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import heroImage from "../assets/hero.png";
 import "./Login.css";
 
@@ -70,6 +70,12 @@ function Login() {
           />
 
           <button type="submit">Login</button>
+
+          {/* 🔥 FORGOT PASSWORD LINK */}
+          <p style={{ marginTop: "12px", textAlign: "center" }}>
+            <Link to="/forgot-password">Forgot Password?</Link>
+          </p>
+
         </form>
       </div>
     </div>

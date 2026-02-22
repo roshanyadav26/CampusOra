@@ -16,7 +16,8 @@ import Contact from "./pages/Contact";
 import HowItWorks from "./pages/HowItWorks";
 import Chat from "./pages/Chat";
 import OwnerDashboard from "./pages/OwnerDashboard";
-
+import ChangePassword from "./pages/ChangePassword"; // ⭐ ADD THIS
+import ForgotPassword from "./pages/forgotPassword";
 function Layout() {
   const location = useLocation();
 
@@ -36,8 +37,12 @@ function Layout() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/my-rooms" element={<MyRooms />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
-        <Route path="/chat" element={<Chat />} /> 
+        <Route path="/chat" element={<Chat />} />
         <Route path="/owner-dashboard" element={<OwnerDashboard />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        {/* 🔥 CHANGE PASSWORD ROUTES */}
+        <Route path="/changePassword" element={<ChangePassword />} />
+        <Route path="/changePassword/:token" element={<ChangePassword />} />
 
         {/* PUBLIC ROOM DETAILS */}
         <Route path="/room/:id" element={<RoomDetails />} />
