@@ -12,20 +12,9 @@ const server = http.createServer(app);
 
 /* ================= CORS CONFIG ================= */
 /* ⭐ allow both local + vercel */
-const allowedOrigins = [
-  "http://localhost:3000",
-  process.env.CLIENT_URL,
-];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS not allowed"));
-      }
-    },
+    origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -40,7 +29,7 @@ app.use("/uploads", express.static("uploads"));
 /* ================= SOCKET.IO ================= */
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: true,
     methods: ["GET", "POST"],
     credentials: true,
   },
