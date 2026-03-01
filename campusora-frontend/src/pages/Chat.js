@@ -19,10 +19,10 @@ function Chat() {
 
   /* ================= REGISTER SOCKET USER ================= */
   useEffect(() => {
-    if (user?.id) {
-      socket.emit("registerUser", user.id);
-    }
-  }, []);
+  if (user?.id) {
+    socket.emit("registerUser", user.id);
+  }
+}, [user?.id]);
 
   /* ================= LOAD MESSAGES ================= */
   const loadMessages = useCallback(async (chat) => {
