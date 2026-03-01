@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api";
 import { Link } from "react-router-dom";
 import heroImage from "../assets/hero.png";
 import "./Login.css"; // reusing same styling
@@ -11,12 +11,12 @@ function ForgetPassword() {
     e.preventDefault();
 
     try {
-      await axios.post(
-        "http://localhost:5000/api/auth/forgot-password",
+      await api.post(
+        "/api/auth/forgot-password",
         { email }
       );
 
-alert("Password reset email sent successfully!");
+      alert("Password reset email sent successfully!");
     } catch (err) {
       alert(err.response?.data?.message || "Something went wrong");
     }

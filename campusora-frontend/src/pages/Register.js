@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 import heroImage from "../assets/hero.png";
 import "./Register.css";
@@ -30,39 +30,36 @@ function Register() {
   };
 
   const handleSubmit = async (e) => {
-    // Email format
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-if (!emailRegex.test(formData.email)) {
-  alert("Please enter a valid email");
-  return;
-}
-
-// Phone validation
-if (!/^[6-9]\d{9}$/.test(formData.phone)) {
-  alert("Please enter a valid 10-digit phone number");
-  return;
-}
-
-// Password validation
-if (formData.password.length < 6) {
-  alert("Password must be at least 6 characters");
-  return;
-}
-
     e.preventDefault();
 
+    // Email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      alert("Please enter a valid email");
+      return;
+    }
+
+    // Phone validation
+    if (!/^[6-9]\d{9}$/.test(formData.phone)) {
+      alert("Please enter a valid 10-digit phone number");
+      return;
+    }
+
+    // Password validation
+    if (formData.password.length < 6) {
+      alert("Password must be at least 6 characters");
+      return;
+    }
+
     try {
-      await axios.post(
-        "http://localhost:5000/api/auth/register",
-        formData
-      );
+      await api.post("/api/auth/register", formData);
+
       alert("Registration successful");
       navigate("/login");
     } catch (err) {
-  console.log(err.response?.data);
-  alert(err.response?.data?.message || "Registration failed");
-}
-
+      console.log(err.response?.data);
+      alert(err.response?.data?.message || "Registration failed");
+    }
   };
 
   return (

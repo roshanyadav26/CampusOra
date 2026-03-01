@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import LocationPicker from "../components/LocationPicker";
 import "./AddRoom.css";
 
@@ -25,7 +25,7 @@ function AddRoom() {
   const [formData, setFormData] = useState({
     title: "",
     rent: "",
-    bhk: "",   // ⭐ NEW
+    bhk: "",
     description: "",
   });
 
@@ -39,7 +39,7 @@ function AddRoom() {
     wifi: false,
     parking: false,
     attachedBathroom: false,
-    Gym:false
+    Gym: false
   });
 
   const [images, setImages] = useState([]);
@@ -103,7 +103,7 @@ function AddRoom() {
 
     data.append("title", formData.title);
     data.append("rent", formData.rent);
-    data.append("bhk", formData.bhk); // ⭐ NEW
+    data.append("bhk", formData.bhk);
     data.append("description", formData.description);
 
     data.append("location", locationData.location);
@@ -117,14 +117,12 @@ function AddRoom() {
     });
 
     try {
-      await axios.post(
-        "http://localhost:5000/api/rooms",
+      await api.post(
+        "/api/rooms",
         data,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "token"
-            )}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
             "Content-Type": "multipart/form-data",
           },
         }
@@ -152,7 +150,6 @@ function AddRoom() {
 
         <form onSubmit={handleSubmit}>
           
-          {/* TITLE */}
           <input
             type="text"
             name="title"
@@ -161,7 +158,6 @@ function AddRoom() {
             onChange={handleChange}
           />
 
-          {/* RENT */}
           <input
             type="number"
             name="rent"
@@ -170,7 +166,6 @@ function AddRoom() {
             onChange={handleChange}
           />
 
-          {/* ⭐ BHK DROPDOWN */}
           <select
             name="bhk"
             value={formData.bhk}
@@ -183,7 +178,6 @@ function AddRoom() {
             <option value="4">4 BHK</option>
           </select>
 
-          {/* DESCRIPTION */}
           <textarea
             name="description"
             placeholder="Room Description *"
@@ -191,7 +185,6 @@ function AddRoom() {
             onChange={handleChange}
           />
 
-          {/* AMENITIES */}
           <h4>Room Amenities</h4>
           <div className="amenities-grid">
             {Object.keys(amenities).map((key) => (
@@ -211,17 +204,13 @@ function AddRoom() {
             ))}
           </div>
 
-          {/* LOCATION */}
           <h4>Select Room Location</h4>
           <LocationPicker setLocationData={setLocationData} />
 
           <p className="selected-location">
-            📍{" "}
-            {locationData.location ||
-              "Move pin to set location"}
+            📍 {locationData.location || "Move pin to set location"}
           </p>
 
-          {/* IMAGES */}
           <input
             type="file"
             multiple
@@ -229,7 +218,6 @@ function AddRoom() {
             onChange={handleImageChange}
           />
 
-          {/* SUBMIT */}
           <button type="submit" disabled={loading}>
             {loading ? "Adding..." : "Add Room"}
           </button>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 import "./Rooms.css";
 
@@ -20,10 +20,9 @@ function Rooms() {
   /* ================= FETCH ROOMS ================= */
   const fetchRooms = useCallback(async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/rooms",
-        { params: filters }
-      );
+      const res = await api.get("/api/rooms", {
+        params: filters,
+      });
 
       setRooms(res.data);
     } catch (err) {
@@ -126,7 +125,7 @@ function Rooms() {
           rooms.map((room) => (
             <div className="room-card" key={room._id}>
 
-              {/* PRICE BADGE (CORRECT POSITION) */}
+              {/* PRICE BADGE */}
               <div className="price-badge">
                 ₹{room.rent}/month
               </div>
@@ -134,7 +133,7 @@ function Rooms() {
               <img
                 src={
                   room.images?.length
-                    ? `http://localhost:5000/${room.images[0]}`
+                    ? `${import.meta.env.VITE_API_URL}/${room.images[0]}`
                     : "/placeholder-room.jpg"
                 }
                 alt="room"
@@ -142,14 +141,14 @@ function Rooms() {
 
               <div className="room-info">
                 <h3>{room.title}</h3>
+
                 <p className="bhk-tag">
-  🏠 {room.bhk || "N/A"} BHK
-</p>
+                  🏠 {room.bhk || "N/A"} BHK
+                </p>
 
                 <p className="location">
-  📍 {room.address || "Location not available"}
-</p>
-
+                  📍 {room.address || "Location not available"}
+                </p>
 
                 <div className="amenities">
                   {room.amenities?.wifi && (

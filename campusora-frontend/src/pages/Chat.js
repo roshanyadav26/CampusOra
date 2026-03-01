@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import socket from "../socket";
 import "./Chat.css";
 
@@ -19,34 +19,34 @@ function Chat() {
 
   /* ================= REGISTER SOCKET USER ================= */
   useEffect(() => {
-  if (user?.id) {
-    socket.emit("registerUser", user.id);
-  }
-}, []); // ← IMPORTANT
+    if (user?.id) {
+      socket.emit("registerUser", user.id);
+    }
+  }, []);
 
   /* ================= LOAD MESSAGES ================= */
- const loadMessages = useCallback(async (chat) => {
-  try {
-    setActiveChat(chat);
+  const loadMessages = useCallback(async (chat) => {
+    try {
+      setActiveChat(chat);
 
-    const res = await axios.get(
-      `http://localhost:5000/api/chat/${chat.roomId}/${chat.ownerId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+      const res = await api.get(
+        `/api/chat/${chat.roomId}/${chat.ownerId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-    setMessages(res.data);
+      setMessages(res.data);
+    } catch (err) {
+      console.error("Message load error:", err);
+    }
+  }, [token]);
 
-  } catch (err) {
-    console.error("Message load error:", err);
-  }
-}, [token]);
   /* ================= LOAD CONVERSATIONS ================= */
   const loadConversations = useCallback(async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/chat/conversations",
+      const res = await api.get(
+        "/api/chat/conversations",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -158,9 +158,11 @@ function Chat() {
             <div
               key={i}
               className={`chat-user ${
-activeChat?.roomId === chat.roomId &&
-activeChat?.ownerId === chat.ownerId ? "active" : ""
-}`}        
+                activeChat?.roomId === chat.roomId &&
+                activeChat?.ownerId === chat.ownerId
+                  ? "active"
+                  : ""
+              }`}
               onClick={() => loadMessages(chat)}
             >
               <div className="avatar">

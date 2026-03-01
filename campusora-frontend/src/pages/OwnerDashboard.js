@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api";
 
 function OwnerDashboard() {
   const [rooms, setRooms] = useState([]);
@@ -8,14 +8,11 @@ function OwnerDashboard() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(
-        "http://localhost:5000/api/rooms/my-rooms",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await api.get("/api/rooms/my-rooms", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       setRooms(res.data);
     } catch (error) {
@@ -27,14 +24,11 @@ function OwnerDashboard() {
     try {
       const token = localStorage.getItem("token");
 
-      await axios.delete(
-        `http://localhost:5000/api/rooms/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await api.delete(`/api/rooms/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       alert("Room deleted successfully");
       fetchMyRooms();
@@ -54,7 +48,14 @@ function OwnerDashboard() {
       {rooms.length === 0 ? (
         <p>No rooms listed yet.</p>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fill, minmax(300px, 1fr))",
+            gap: "20px",
+          }}
+        >
           {rooms.map((room) => (
             <div
               key={room._id}
@@ -68,7 +69,7 @@ function OwnerDashboard() {
             >
               {room.images && room.images.length > 0 && (
                 <img
-                  src={`http://localhost:5000/${room.images[0]}`}
+                  src={`${import.meta.env.VITE_API_URL}/${room.images[0]}`}
                   alt="room"
                   style={{
                     width: "100%",

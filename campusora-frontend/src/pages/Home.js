@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import heroImage from "../assets/hero.png";
 import "./Home.css";
 
@@ -12,8 +12,8 @@ function Home() {
   useEffect(() => {
     const fetchRooms = async (lat, lng) => {
       try {
-        const res = await axios.get(
-          "http://localhost:5000/api/rooms/nearby",
+        const res = await api.get(
+          "/api/rooms/nearby",
           {
             params: { lat, lng }
           }
@@ -21,8 +21,8 @@ function Home() {
         setRooms(res.data);
       } catch (err) {
         console.error("Nearby fetch failed, loading featured rooms");
-        const fallback = await axios.get(
-          "http://localhost:5000/api/rooms/featured"
+        const fallback = await api.get(
+          "/api/rooms/featured"
         );
         setRooms(fallback.data);
       } finally {
@@ -87,7 +87,7 @@ function Home() {
               <img
                 src={
                   room.images?.length
-                    ? `http://localhost:5000/${room.images[0]}`
+                    ? `${import.meta.env.VITE_API_URL}/${room.images[0]}`
                     : "/placeholder-room.jpg"
                 }
                 alt="Room"
@@ -98,7 +98,6 @@ function Home() {
                 <p className="price">
                   ₹{room.rent} / month
                 </p>
-               
 
                 <button
                   onClick={() =>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
 import "./RoomDetails.css";
 
@@ -13,16 +13,16 @@ function RoomDetails() {
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ⭐ NEW — slider state
+  // ⭐ slider state
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:5000/api/rooms/${id}`)
+    api
+      .get(`/api/rooms/${id}`)
       .then((res) => {
         setRoom(res.data);
         setLoading(false);
@@ -41,7 +41,6 @@ function RoomDetails() {
   const isOwner = currentUser?._id === room.owner?._id;
   const isStudent = currentUser?.role === "student";
 
-  // ⭐ Slider controls
   const nextImage = () => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
   };
@@ -55,14 +54,14 @@ function RoomDetails() {
   return (
     <div className="room-details-page">
 
-      {/* ===== NEW IMAGE SLIDER ===== */}
+      {/* ===== IMAGE SLIDER ===== */}
       <div className="slider-container">
 
         <button className="arrow left" onClick={prevImage}>❮</button>
 
         <img
           className="slider-main-image"
-          src={`http://localhost:5000/${images[currentIndex]}`}
+          src={`${import.meta.env.VITE_API_URL}/${images[currentIndex]}`}
           alt=""
         />
 
@@ -73,7 +72,7 @@ function RoomDetails() {
           {images.map((img, i) => (
             <img
               key={i}
-              src={`http://localhost:5000/${img}`}
+              src={`${import.meta.env.VITE_API_URL}/${img}`}
               className={i === currentIndex ? "active-thumb" : ""}
               onClick={() => setCurrentIndex(i)}
               alt=""

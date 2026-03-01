@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api";
 import { useParams, useNavigate } from "react-router-dom";
 import heroImage from "../assets/hero.png";
 import "./Login.css";
@@ -30,8 +30,8 @@ function ChangePassword() {
       // ================= RESET PASSWORD =================
       if (token) {
 
-        await axios.post(
-          `http://localhost:5000/api/auth/reset-password/${token}`,
+        await api.post(
+          `/api/auth/reset-password/${token}`,
           { password: newPassword }
         );
 
@@ -42,8 +42,8 @@ function ChangePassword() {
       // ================= NORMAL CHANGE PASSWORD =================
       else {
 
-        await axios.post(
-          "http://localhost:5000/api/auth/change-password",
+        await api.post(
+          "/api/auth/change-password",
           { oldPassword, newPassword },
           {
             headers: {

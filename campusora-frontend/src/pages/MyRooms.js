@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api";
 import "./MyRooms.css";
 
 function MyRooms() {
   const [rooms, setRooms] = useState([]);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/rooms/my-rooms", {
+    api
+      .get("/api/rooms/my-rooms", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`
         }
@@ -26,7 +26,7 @@ function MyRooms() {
         {rooms.map((room) => (
           <div className="room-card" key={room._id}>
             <img
-              src={`http://localhost:5000/${room.images[0]}`}
+              src={`${import.meta.env.VITE_API_URL}/${room.images[0]}`}
               alt="Room"
             />
             <div className="room-info">
