@@ -11,15 +11,8 @@ const app = express();
 const server = http.createServer(app);
 
 /* ================= CORS CONFIG ================= */
-/* ⭐ allow both local + vercel */
-app.use(
-  cors({
-    origin: true,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+/* ⭐ OPEN CORS (best for deployment testing) */
+app.use(cors());
 
 /* ================= MIDDLEWARE ================= */
 app.use(express.json());
@@ -29,20 +22,21 @@ app.use("/uploads", express.static("uploads"));
 /* ================= SOCKET.IO ================= */
 const io = new Server(server, {
   cors: {
-    origin: true,
+    origin: "*",
     methods: ["GET", "POST"],
-    credentials: true,
   },
 });
 
 io.on("connection", (socket) => {
   console.log("🟢 User connected:", socket.id);
 
+  /* ===== REGISTER USER ===== */
   socket.on("registerUser", (userId) => {
     if (!userId) return;
     socket.join(userId);
   });
 
+  /* ===== SEND MESSAGE ===== */
   socket.on("sendMessage", async (data) => {
     try {
       const { roomId, senderId, receiverId, text } = data;
@@ -88,8 +82,9 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB connected");
-    server.listen(PORT, () =>
-      console.log(`🚀 Server running on ${PORT}`)
-    );
+
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on ${PORT}`);
+    });
   })
   .catch((err) => console.error(err));
