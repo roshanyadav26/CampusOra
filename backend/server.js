@@ -11,8 +11,16 @@ const app = express();
 const server = http.createServer(app);
 
 /* ================= CORS CONFIG ================= */
-/* ⭐ OPEN CORS (best for deployment testing) */
-app.use(cors());
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+
+app.use(
+  cors({
+    origin: CLIENT_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 /* ================= MIDDLEWARE ================= */
 app.use(express.json());
@@ -22,26 +30,39 @@ app.use("/uploads", express.static("uploads"));
 /* ================= SOCKET.IO ================= */
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: CLIENT_URL,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
 io.on("connection", (socket) => {
   console.log("🟢 User connected:", socket.id);
 
-  /* ===== REGISTER USER ===== */
+  /* ===== REGISTER USER SOCKET ===== */
   socket.on("registerUser", (userId) => {
-    if (!userId) return;
+    if (!userId) {
+      console.log("❌ registerUser missing userId");
+      return;
+    }
+
     socket.join(userId);
+    console.log("👤 User registered in socket room:", userId);
   });
 
   /* ===== SEND MESSAGE ===== */
   socket.on("sendMessage", async (data) => {
     try {
-      const { roomId, senderId, receiverId, text } = data;
-      if (!roomId || !senderId || !receiverId || !text) return;
+      console.log("📨 Incoming message:", data);
 
+      const { roomId, senderId, receiverId, text } = data;
+
+      if (!roomId || !senderId || !receiverId || !text) {
+        console.log("❌ Missing required message fields");
+        return;
+      }
+
+      // Save message
       const message = await Message.create({
         room: roomId,
         sender: senderId,
@@ -49,14 +70,20 @@ io.on("connection", (socket) => {
         text,
       });
 
+      // Populate sender & receiver
       const populatedMessage = await Message.findById(message._id)
         .populate("sender", "name")
         .populate("receiver", "name");
 
+      // Emit to receiver
       io.to(receiverId).emit("receiveMessage", populatedMessage);
+
+      // Emit back to sender
       io.to(senderId).emit("receiveMessage", populatedMessage);
+
+      console.log("✅ Message successfully delivered");
     } catch (err) {
-      console.error("Message error:", err);
+      console.error("❌ Message save failed:", err);
     }
   });
 
@@ -72,10 +99,10 @@ app.use("/api/chat", require("./routes/chatRoutes"));
 
 /* ================= HEALTH CHECK ================= */
 app.get("/", (req, res) => {
-  res.send("🚀 CampusOra Backend Running - LIVE");
+  res.send("🚀 CampusOra Backend Running");
 });
 
-/* ================= DATABASE ================= */
+/* ================= DATABASE CONNECTION ================= */
 const PORT = process.env.PORT || 5000;
 
 mongoose
@@ -84,7 +111,10 @@ mongoose
     console.log("✅ MongoDB connected");
 
     server.listen(PORT, () => {
-      console.log(`🚀 Server running on ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log("🌐 CLIENT_URL:", CLIENT_URL);
     });
   })
-  .catch((err) => console.error(err));
+  .catch((err) => {
+    console.error("❌ MongoDB connection failed:", err);
+  });

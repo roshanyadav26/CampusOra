@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../api";
 import { useParams, useNavigate } from "react-router-dom";
+import heroImage from "../assets/hero.png";
 import "./Login.css";
 
 function ChangePassword() {
@@ -63,7 +64,8 @@ function ChangePassword() {
   return (
     <div
       className="login-page"
-style={{ backgroundImage: "url('/hero.png')" }}    >
+      style={{ backgroundImage: `url(${heroImage})` }}
+    >
       <div className="login-overlay">
 
         <form className="login-form" onSubmit={submit}>

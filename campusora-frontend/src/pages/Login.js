@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../api";
 import { useNavigate, Link } from "react-router-dom";
+import heroImage from "../assets/hero.png";
 import "./Login.css";
 
 function Login() {
@@ -46,7 +47,8 @@ function Login() {
   return (
     <div
       className="login-page"
-style={{ backgroundImage: "url('/hero.png')" }}    >
+      style={{ backgroundImage: `url(${heroImage})` }}
+    >
       <div className="login-overlay">
         <form className="login-form" onSubmit={handleSubmit}>
           <h2>Login</h2>

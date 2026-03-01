@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../api";
 import { Link } from "react-router-dom";
+import heroImage from "../assets/hero.png";
 import "./Login.css"; // reusing same styling
 
 function ForgetPassword() {
@@ -24,7 +25,8 @@ function ForgetPassword() {
   return (
     <div
       className="login-page"
-style={{ backgroundImage: "url('/hero.png')" }}    >
+      style={{ backgroundImage: `url(${heroImage})` }}
+    >
       <div className="login-overlay">
         <form className="login-form" onSubmit={submit}>
           <h2>Forgot Password</h2>

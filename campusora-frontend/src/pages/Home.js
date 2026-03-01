@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import heroImage from "../assets/hero.png";
 import "./Home.css";
 
 function Home() {
@@ -51,7 +52,8 @@ function Home() {
       {/* HERO SECTION */}
       <div
         className="hero"
-style={{ backgroundImage: "url('/hero.png')" }}      >
+        style={{ backgroundImage: `url(${heroImage})` }}
+      >
         <div className="hero-overlay">
           <div className="hero-center">
             <h1 className="hero-title">CampusOra</h1>
