@@ -61,7 +61,7 @@ function RoomDetails() {
 
         <img
           className="slider-main-image"
-          src={`${import.meta.env.VITE_API_URL}/${images[currentIndex]}`}
+          src={`${process.env.REACT_APP_API_URL}/${images[currentIndex]}`}
           alt=""
         />
 
@@ -72,7 +72,7 @@ function RoomDetails() {
           {images.map((img, i) => (
             <img
               key={i}
-              src={`${import.meta.env.VITE_API_URL}/${img}`}
+              src={`${process.env.REACT_APP_API_URL}/${img}`}
               className={i === currentIndex ? "active-thumb" : ""}
               onClick={() => setCurrentIndex(i)}
               alt=""

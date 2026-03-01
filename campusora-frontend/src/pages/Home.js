@@ -87,7 +87,7 @@ function Home() {
               <img
                 src={
                   room.images?.length
-                    ? `${import.meta.env.VITE_API_URL}/${room.images[0]}`
+                    ? `${process.env.REACT_APP_API_URL}/${room.images[0]}`
                     : "/placeholder-room.jpg"
                 }
                 alt="Room"

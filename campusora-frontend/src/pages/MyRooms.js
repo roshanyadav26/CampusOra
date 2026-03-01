@@ -26,7 +26,7 @@ function MyRooms() {
         {rooms.map((room) => (
           <div className="room-card" key={room._id}>
             <img
-              src={`${import.meta.env.VITE_API_URL}/${room.images[0]}`}
+              src={`${process.env.REACT_APP_API_URL}/${room.images[0]}`}
               alt="Room"
             />
             <div className="room-info">

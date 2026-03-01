@@ -69,7 +69,7 @@ function OwnerDashboard() {
             >
               {room.images && room.images.length > 0 && (
                 <img
-                  src={`${import.meta.env.VITE_API_URL}/${room.images[0]}`}
+                  src={`${process.env.REACT_APP_API_URL}/${room.images[0]}`}
                   alt="room"
                   style={{
                     width: "100%",
