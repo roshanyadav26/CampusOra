@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
-import heroImage from "../assets/hero.png";
 import "./Register.css";
 
 function Register() {
@@ -65,8 +64,7 @@ function Register() {
   return (
     <div
       className="register-page"
-      style={{ backgroundImage: `url(${heroImage})` }}
-    >
+style={{ backgroundImage: "url('/hero.png')" }}    >
       <div className="register-overlay">
         <form className="register-form" onSubmit={handleSubmit}>
           <h2>Create Account</h2>
