@@ -10,11 +10,29 @@ const Message = require("./models/Message");
 const app = express();
 const server = http.createServer(app);
 
+/* ================= CORS CONFIG ================= */
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+
+app.use(
+  cors({
+    origin: CLIENT_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+/* ================= MIDDLEWARE ================= */
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static("uploads"));
+
 /* ================= SOCKET.IO ================= */
 const io = new Server(server, {
   cors: {
-origin: process.env.CLIENT_URL,
+    origin: CLIENT_URL,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
@@ -44,7 +62,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Save message to database
+      // Save message
       const message = await Message.create({
         room: roomId,
         sender: senderId,
@@ -58,15 +76,12 @@ io.on("connection", (socket) => {
         .populate("receiver", "name");
 
       // Emit to receiver
-      console.log("🚀 Emitting to receiver:", receiverId);
       io.to(receiverId).emit("receiveMessage", populatedMessage);
 
       // Emit back to sender
-      console.log("🚀 Emitting back to sender:", senderId);
       io.to(senderId).emit("receiveMessage", populatedMessage);
 
       console.log("✅ Message successfully delivered");
-
     } catch (err) {
       console.error("❌ Message save failed:", err);
     }
@@ -76,18 +91,6 @@ io.on("connection", (socket) => {
     console.log("🔴 User disconnected:", socket.id);
   });
 });
-
-/* ================= MIDDLEWARE ================= */
-app.use(
-  cors({
-origin: process.env.CLIENT_URL,
-    credentials: true,
-  })
-);
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static("uploads"));
 
 /* ================= ROUTES ================= */
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -109,8 +112,9 @@ mongoose
 
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
+      console.log("🌐 CLIENT_URL:", CLIENT_URL);
     });
   })
   .catch((err) => {
-  console.error("❌ MongoDB connection failed:", err);
-});
+    console.error("❌ MongoDB connection failed:", err);
+  });

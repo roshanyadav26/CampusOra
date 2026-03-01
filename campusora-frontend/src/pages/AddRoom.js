@@ -39,6 +39,7 @@ function AddRoom() {
     wifi: false,
     parking: false,
     attachedBathroom: false,
+    Gym:false
   });
 
   const [images, setImages] = useState([]);

@@ -13,6 +13,9 @@ function RoomDetails() {
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ⭐ NEW — slider state
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
   });
@@ -38,22 +41,41 @@ function RoomDetails() {
   const isOwner = currentUser?._id === room.owner?._id;
   const isStudent = currentUser?.role === "student";
 
+  // ⭐ Slider controls
+  const nextImage = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentIndex((prev) =>
+      prev === 0 ? images.length - 1 : prev - 1
+    );
+  };
+
   return (
     <div className="room-details-page">
 
-      {/* ===== IMAGE GALLERY ===== */}
-      <div className="gallery">
+      {/* ===== NEW IMAGE SLIDER ===== */}
+      <div className="slider-container">
+
+        <button className="arrow left" onClick={prevImage}>❮</button>
+
         <img
-          className="main-image"
-          src={`http://localhost:5000/${images[0]}`}
+          className="slider-main-image"
+          src={`http://localhost:5000/${images[currentIndex]}`}
           alt=""
         />
 
-        <div className="side-images">
-          {images.slice(1,3).map((img, i) => (
+        <button className="arrow right" onClick={nextImage}>❯</button>
+
+        {/* thumbnails */}
+        <div className="thumbnails">
+          {images.map((img, i) => (
             <img
               key={i}
               src={`http://localhost:5000/${img}`}
+              className={i === currentIndex ? "active-thumb" : ""}
+              onClick={() => setCurrentIndex(i)}
               alt=""
             />
           ))}
@@ -63,16 +85,10 @@ function RoomDetails() {
       {/* ===== CONTENT ===== */}
       <div className="details-container">
 
-        {/* LEFT */}
         <div className="left-section">
           <h1>{room.title}</h1>
-
           <p className="price">₹{room.rent} / month</p>
-
-          <p className="location">
-            📍 {room.address}
-          </p>
-
+          <p className="location">📍 {room.address}</p>
           <p className="description">{room.description}</p>
 
           <h3>Room Amenities</h3>
@@ -90,7 +106,6 @@ function RoomDetails() {
                 ))}
           </div>
 
-          {/* MAP */}
           {lat && lng && (
             <GoogleMap
               center={{ lat: Number(lat), lng: Number(lng) }}
@@ -107,31 +122,28 @@ function RoomDetails() {
           )}
         </div>
 
-        {/* RIGHT CARD */}
         <div className="right-section">
           <h3>Owner Details</h3>
-
           <p><strong>Name:</strong> {room.owner?.name}</p>
           <p><strong>Phone:</strong> {room.owner?.phone}</p>
 
           {currentUser && isStudent && !isOwner && (
-          <button
-  className="chat-btn"
-  onClick={() =>
-    navigate("/chat", {
-      state: {
-        roomId: room._id,
-        ownerId: room.owner._id,
-        ownerName: room.owner.name,
-        roomTitle: room.title,
-        directOpen: true,
-      },
-    })
-  }
->
-  💬 Chat With Owner
-</button>
-
+            <button
+              className="chat-btn"
+              onClick={() =>
+                navigate("/chat", {
+                  state: {
+                    roomId: room._id,
+                    ownerId: room.owner._id,
+                    ownerName: room.owner.name,
+                    roomTitle: room.title,
+                    directOpen: true,
+                  },
+                })
+              }
+            >
+              💬 Chat With Owner
+            </button>
           )}
 
           <div className="owner-actions">

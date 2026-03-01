@@ -15,32 +15,60 @@ body {
   padding: 0 20px;
 }
 
-/* ===== GALLERY ===== */
+/* ===== SLIDER ===== */
 
-.gallery {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 12px;
+.slider-container {
+  position: relative;
+  max-width: 100%;
   margin-bottom: 25px;
 }
 
-.main-image {
+.slider-main-image {
   width: 100%;
-  aspect-ratio: 16/9;
+  height: 420px;
   object-fit: cover;
   border-radius: 16px;
 }
 
-.side-images {
-  display: grid;
-  gap: 12px;
+.arrow {
+  position: absolute;
+  top: 45%;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 18px;
 }
 
-.side-images img {
-  width: 100%;
-  aspect-ratio: 16/9;
+.left {
+  left: 15px;
+}
+
+.right {
+  right: 15px;
+}
+
+.thumbnails {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  overflow-x: auto;
+}
+
+.thumbnails img {
+  width: 85px;
+  height: 60px;
   object-fit: cover;
-  border-radius: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.active-thumb {
+  border: 2px solid #2563eb;
+  opacity: 1 !important;
 }
 
 /* ===== CONTENT ===== */
