@@ -22,7 +22,7 @@ function Chat() {
     if (user?.id) {
       socket.emit("registerUser", user.id);
     }
-  }, []);
+  }, [user?.id]); // ⭐ FIXED DEPENDENCY
 
   /* ================= LOAD MESSAGES ================= */
   const loadMessages = useCallback(async (chat) => {
