@@ -9,18 +9,16 @@ const Message = require("./models/Message");
 
 const app = express();
 const server = http.createServer(app);
-
 /* ================= CORS CONFIG ================= */
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://campus-ora.vercel.app",
+  "https://campusora.vercel.app",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow Postman / mobile apps
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
@@ -34,7 +32,6 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
 /* ================= MIDDLEWARE ================= */
 
 app.use(express.json());
