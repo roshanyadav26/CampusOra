@@ -81,6 +81,7 @@ function Rooms() {
                 ₹{room.rent}/month
               </div>
 
+              {/* ⭐ ONLY IMAGE FIX */}
               <img
                 src={
                   room.images?.length
@@ -102,7 +103,9 @@ function Rooms() {
                 </p>
 
                 <button
-                  onClick={() => navigate(`/room/${room._id}`)}
+                  onClick={() =>
+                    navigate(`/room/${room._id}`)
+                  }
                 >
                   View Details
                 </button>

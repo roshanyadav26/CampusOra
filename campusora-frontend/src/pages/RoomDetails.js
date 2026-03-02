@@ -19,8 +19,7 @@ function RoomDetails() {
   });
 
   useEffect(() => {
-    api
-      .get(`/api/rooms/${id}`)
+    api.get(`/api/rooms/${id}`)
       .then((res) => {
         setRoom(res.data);
         setLoading(false);
@@ -33,11 +32,6 @@ function RoomDetails() {
   if (!isLoaded) return <p>Loading map...</p>;
 
   const images = room.images || [];
-  const lat = room.location?.coordinates?.[1];
-  const lng = room.location?.coordinates?.[0];
-
-  const isOwner = currentUser?._id === room.owner?._id;
-  const isStudent = currentUser?.role === "student";
 
   const nextImage = () => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
@@ -49,10 +43,12 @@ function RoomDetails() {
     );
   };
 
+  const lat = room.location?.coordinates?.[1];
+  const lng = room.location?.coordinates?.[0];
+
   return (
     <div className="room-details-page">
 
-      {/* ===== IMAGE SLIDER ===== */}
       <div className="slider-container">
 
         <button className="arrow left" onClick={prevImage}>
@@ -61,11 +57,7 @@ function RoomDetails() {
 
         <img
           className="slider-main-image"
-          src={
-            images.length
-              ? `${process.env.REACT_APP_API_URL}/${images[currentIndex]}`
-              : "/placeholder-room.jpg"
-          }
+          src={images[currentIndex]}
           alt="room"
         />
 
@@ -73,7 +65,6 @@ function RoomDetails() {
           ❯
         </button>
 
-        {/* thumbnails */}
         <div className="thumbnails">
           {images.map((img, i) => (
             <img
@@ -87,30 +78,13 @@ function RoomDetails() {
         </div>
       </div>
 
-      {/* ===== ROOM DETAILS ===== */}
       <div className="details-container">
 
-        {/* LEFT SIDE */}
         <div className="left-section">
           <h1>{room.title}</h1>
           <p className="price">₹{room.rent} / month</p>
           <p className="location">📍 {room.address}</p>
-          <p className="description">{room.description}</p>
-
-          <h3>Room Amenities</h3>
-
-          <div className="amenities">
-            {room.amenities &&
-              Object.entries(room.amenities)
-                .filter(([_, v]) => v)
-                .map(([key]) => (
-                  <span key={key}>
-                    {key
-                      .replace(/([A-Z])/g, " $1")
-                      .replace(/^./, (s) => s.toUpperCase())}
-                  </span>
-                ))}
-          </div>
+          <p>{room.description}</p>
 
           {lat && lng && (
             <GoogleMap
@@ -119,51 +93,12 @@ function RoomDetails() {
               mapContainerStyle={{
                 width: "100%",
                 height: "300px",
-                marginTop: "25px",
                 borderRadius: "14px",
               }}
             >
               <Marker position={{ lat: Number(lat), lng: Number(lng) }} />
             </GoogleMap>
           )}
-        </div>
-
-        {/* RIGHT SIDE */}
-        <div className="right-section">
-          <h3>Owner Details</h3>
-          <p><strong>Name:</strong> {room.owner?.name}</p>
-          <p><strong>Phone:</strong> {room.owner?.phone}</p>
-
-          {currentUser && isStudent && !isOwner && (
-            <button
-              className="chat-btn"
-              onClick={() =>
-                navigate("/chat", {
-                  state: {
-                    roomId: room._id,
-                    ownerId: room.owner._id,
-                    ownerName: room.owner.name,
-                    roomTitle: room.title,
-                    directOpen: true,
-                  },
-                })
-              }
-            >
-              💬 Chat With Owner
-            </button>
-          )}
-
-          <div className="owner-actions">
-            <a href={`tel:${room.owner?.phone}`}>📞 Call</a>
-
-            <a
-              href={`https://wa.me/91${room.owner?.phone}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              💬 WhatsApp
-            </a>
-          </div>
         </div>
 
       </div>

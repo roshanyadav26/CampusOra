@@ -10,7 +10,6 @@ function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-
     const loadAllRooms = async () => {
       try {
         const res = await api.get("/api/rooms");
@@ -25,23 +24,20 @@ function Home() {
     const fetchNearby = async (lat, lng) => {
       try {
         const nearby = await api.get("/api/rooms/nearby", {
-          params: { lat, lng }
+          params: { lat, lng },
         });
 
-        // ⭐ if nearby empty → load all
         if (!nearby.data || nearby.data.length === 0) {
           loadAllRooms();
         } else {
           setRooms(nearby.data);
           setLoading(false);
         }
-
       } catch {
         loadAllRooms();
       }
     };
 
-    // GEOLOCATION
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) =>
@@ -54,7 +50,6 @@ function Home() {
     } else {
       loadAllRooms();
     }
-
   }, []);
 
   return (
@@ -75,9 +70,6 @@ function Home() {
 
       <section className="nearby-section">
         <h2>Rooms Near You</h2>
-        <p className="nearby-subtitle">
-          Affordable and verified rooms around your college
-        </p>
 
         {loading && <p className="no-rooms">Loading rooms...</p>}
 
