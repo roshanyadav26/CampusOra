@@ -20,7 +20,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin (mobile apps, postman)
+      // allow Postman / mobile apps
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
@@ -36,11 +36,15 @@ app.use(
 );
 
 /* ================= MIDDLEWARE ================= */
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// serve uploaded images
 app.use("/uploads", express.static("uploads"));
 
 /* ================= SOCKET.IO ================= */
+
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
@@ -48,6 +52,9 @@ const io = new Server(server, {
     credentials: true,
   },
 });
+
+io.on("connection", (socket) => {
+  console.log("🟢 User connected:", socket.id);
 
   /* ===== REGISTER USER SOCKET ===== */
   socket.on("registerUser", (userId) => {
@@ -57,7 +64,7 @@ const io = new Server(server, {
     }
 
     socket.join(userId);
-    console.log("👤 User registered in socket room:", userId);
+    console.log("👤 User registered:", userId);
   });
 
   /* ===== SEND MESSAGE ===== */
@@ -68,11 +75,11 @@ const io = new Server(server, {
       const { roomId, senderId, receiverId, text } = data;
 
       if (!roomId || !senderId || !receiverId || !text) {
-        console.log("❌ Missing required message fields");
+        console.log("❌ Missing message fields");
         return;
       }
 
-      // Save message
+      // Save message in DB
       const message = await Message.create({
         room: roomId,
         sender: senderId,
@@ -80,20 +87,20 @@ const io = new Server(server, {
         text,
       });
 
-      // Populate sender & receiver
+      // populate sender & receiver
       const populatedMessage = await Message.findById(message._id)
         .populate("sender", "name")
         .populate("receiver", "name");
 
-      // Emit to receiver
+      // send to receiver
       io.to(receiverId).emit("receiveMessage", populatedMessage);
 
-      // Emit back to sender
+      // send back to sender
       io.to(senderId).emit("receiveMessage", populatedMessage);
 
-      console.log("✅ Message successfully delivered");
+      console.log("✅ Message delivered");
     } catch (err) {
-      console.error("❌ Message save failed:", err);
+      console.error("❌ Message error:", err);
     }
   });
 
@@ -103,16 +110,19 @@ const io = new Server(server, {
 });
 
 /* ================= ROUTES ================= */
+
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/rooms", require("./routes/roomRoutes"));
 app.use("/api/chat", require("./routes/chatRoutes"));
 
 /* ================= HEALTH CHECK ================= */
+
 app.get("/", (req, res) => {
   res.send("🚀 CampusOra Backend Running");
 });
 
-/* ================= DATABASE CONNECTION ================= */
+/* ================= DATABASE + SERVER ================= */
+
 const PORT = process.env.PORT || 5000;
 
 mongoose
@@ -122,7 +132,6 @@ mongoose
 
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log("🌐 CLIENT_URL:", CLIENT_URL);
     });
   })
   .catch((err) => {
