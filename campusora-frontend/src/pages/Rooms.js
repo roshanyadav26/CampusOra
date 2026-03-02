@@ -35,7 +35,9 @@ function Rooms() {
   return (
     <div className="rooms-page">
 
+      {/* ===== FILTERS ===== */}
       <div className="filters">
+
         <input
           type="number"
           placeholder="Max Rent (₹)"
@@ -67,6 +69,7 @@ function Rooms() {
         />
       </div>
 
+      {/* ===== ROOM GRID ===== */}
       <div className="room-grid">
         {rooms.length === 0 ? (
           <p>No rooms found</p>
@@ -104,6 +107,7 @@ function Rooms() {
                   View Details
                 </button>
               </div>
+
             </div>
           ))
         )}
