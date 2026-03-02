@@ -78,7 +78,7 @@ function RoomDetails() {
           {images.map((img, i) => (
             <img
               key={i}
-              src={`${process.env.REACT_APP_API_URL}/${img}`}
+              src={img}
               className={i === currentIndex ? "active-thumb" : ""}
               onClick={() => setCurrentIndex(i)}
               alt=""

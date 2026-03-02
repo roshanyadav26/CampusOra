@@ -91,7 +91,7 @@ function Home() {
               <img
                 src={
                   room.images?.length
-                    ? `${process.env.REACT_APP_API_URL}/${room.images[0]}`
+                    ? room.images[0]
                     : "/placeholder-room.jpg"
                 }
                 alt="Room"

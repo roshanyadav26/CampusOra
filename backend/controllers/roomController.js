@@ -22,12 +22,13 @@ const addRoom = async (req, res) => {
       });
     }
 
+    // 🔥 CLOUDINARY IMAGE URLS
     const imagePaths = req.files
       ? req.files.map((file) => file.path)
       : [];
 
-    // Parse amenities safely
     let parsedAmenities = {};
+
     if (amenities) {
       try {
         parsedAmenities =
@@ -42,15 +43,12 @@ const addRoom = async (req, res) => {
     const newRoom = new Room({
       title,
       description,
-      rent:Number(rent),bhk:Number(bhk),
+      rent: Number(rent),
+      bhk: Number(bhk),
       images: imagePaths,
       owner: req.user._id,
-
-      // readable address
       address: location || "",
-
       amenities: parsedAmenities,
-
       location: {
         type: "Point",
         coordinates: [parseFloat(lng), parseFloat(lat)],
@@ -59,7 +57,6 @@ const addRoom = async (req, res) => {
 
     const savedRoom = await newRoom.save();
     res.status(201).json(savedRoom);
-
   } catch (error) {
     console.error("ADD ROOM ERROR:", error);
     res.status(500).json({ message: "Error adding room" });
@@ -67,7 +64,7 @@ const addRoom = async (req, res) => {
 };
 
 /* =========================
-   GET ALL ROOMS (SMART FILTERS)
+   GET ALL ROOMS
 ========================= */
 const getRooms = async (req, res) => {
   try {
@@ -83,27 +80,15 @@ const getRooms = async (req, res) => {
 
     let query = {};
 
-    /* RENT FILTER */
-    if (maxRent) {
-      query.rent = { $lte: Number(maxRent) };
-    }
-
-    /* BHK */
-    if (bhk) {
-      query.bhk = Number(bhk);
-    }
-
-    /* LOCATION SEARCH */
-    if (location) {
+    if (maxRent) query.rent = { $lte: Number(maxRent) };
+    if (bhk) query.bhk = Number(bhk);
+    if (location)
       query.address = { $regex: location, $options: "i" };
-    }
 
-    /* AMENITIES */
     if (wifi === "true") query["amenities.wifi"] = true;
     if (parking === "true") query["amenities.parking"] = true;
     if (furnished === "true") query["amenities.furnished"] = true;
 
-    /* SORTING */
     let sortOption = { createdAt: -1 };
 
     if (sort === "rentLow") sortOption = { rent: 1 };
@@ -114,7 +99,6 @@ const getRooms = async (req, res) => {
       .sort(sortOption);
 
     res.json(rooms);
-
   } catch (error) {
     console.error("GET ROOMS ERROR:", error);
     res.status(500).json({ message: "Error fetching rooms" });
@@ -126,14 +110,11 @@ const getRooms = async (req, res) => {
 ========================= */
 const getRoomById = async (req, res) => {
   try {
-    const room = await Room.findById(req.params.id).populate(
-      "owner",
-      "name email phone"
-    );
+    const room = await Room.findById(req.params.id)
+      .populate("owner", "name email phone");
 
-    if (!room) {
+    if (!room)
       return res.status(404).json({ message: "Room not found" });
-    }
 
     res.json(room);
   } catch (error) {
@@ -143,17 +124,16 @@ const getRoomById = async (req, res) => {
 };
 
 /* =========================
-   GET NEARBY ROOMS
+   NEARBY ROOMS
 ========================= */
 const getNearbyRooms = async (req, res) => {
   try {
     const { lat, lng } = req.query;
 
-    if (!lat || !lng) {
+    if (!lat || !lng)
       return res.status(400).json({
         message: "Latitude and Longitude required",
       });
-    }
 
     const rooms = await Room.find({
       location: {
@@ -168,7 +148,6 @@ const getNearbyRooms = async (req, res) => {
     }).populate("owner", "name email phone");
 
     res.json(rooms);
-
   } catch (error) {
     console.error("NEARBY ROOMS ERROR:", error);
     res.status(500).json({ message: "Error fetching nearby rooms" });
@@ -176,7 +155,7 @@ const getNearbyRooms = async (req, res) => {
 };
 
 /* =========================
-   GET MY ROOMS
+   MY ROOMS
 ========================= */
 const getMyRooms = async (req, res) => {
   try {
@@ -198,27 +177,21 @@ const deleteRoom = async (req, res) => {
   try {
     const room = await Room.findById(req.params.id);
 
-    if (!room) {
+    if (!room)
       return res.status(404).json({ message: "Room not found" });
-    }
 
-    if (room.owner.toString() !== req.user._id.toString()) {
+    if (room.owner.toString() !== req.user._id.toString())
       return res.status(403).json({ message: "Not authorized" });
-    }
 
     await room.deleteOne();
 
     res.json({ message: "Room deleted successfully" });
-
   } catch (error) {
     console.error("DELETE ROOM ERROR:", error);
     res.status(500).json({ message: "Error deleting room" });
   }
 };
 
-/* =========================
-   EXPORTS
-========================= */
 module.exports = {
   addRoom,
   getRooms,
