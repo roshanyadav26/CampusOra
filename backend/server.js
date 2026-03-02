@@ -11,11 +11,24 @@ const app = express();
 const server = http.createServer(app);
 
 /* ================= CORS CONFIG ================= */
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://campus-ora.vercel.app",
+];
 
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: function (origin, callback) {
+      // allow requests with no origin (mobile apps, postman)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -30,14 +43,11 @@ app.use("/uploads", express.static("uploads"));
 /* ================= SOCKET.IO ================= */
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_URL,
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
-
-io.on("connection", (socket) => {
-  console.log("🟢 User connected:", socket.id);
 
   /* ===== REGISTER USER SOCKET ===== */
   socket.on("registerUser", (userId) => {

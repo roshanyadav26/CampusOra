@@ -10,46 +10,55 @@ function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchRooms = async (lat, lng) => {
+
+    const loadAllRooms = async () => {
       try {
-        const res = await api.get(
-          "/api/rooms/nearby",
-          {
-            params: { lat, lng }
-          }
-        );
+        const res = await api.get("/api/rooms");
         setRooms(res.data);
       } catch (err) {
-        console.error("Nearby fetch failed, loading featured rooms");
-        const fallback = await api.get(
-          "/api/rooms/featured"
-        );
-        setRooms(fallback.data);
+        console.log("Failed loading rooms", err);
       } finally {
         setLoading(false);
       }
     };
 
+    const fetchNearby = async (lat, lng) => {
+      try {
+        const nearby = await api.get("/api/rooms/nearby", {
+          params: { lat, lng }
+        });
+
+        // ⭐ if nearby empty → load all
+        if (!nearby.data || nearby.data.length === 0) {
+          loadAllRooms();
+        } else {
+          setRooms(nearby.data);
+          setLoading(false);
+        }
+
+      } catch {
+        loadAllRooms();
+      }
+    };
+
+    // GEOLOCATION
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) =>
-          fetchRooms(
+          fetchNearby(
             pos.coords.latitude,
             pos.coords.longitude
           ),
-        () => {
-          // Permission denied → fallback
-          fetchRooms();
-        }
+        () => loadAllRooms()
       );
     } else {
-      fetchRooms();
+      loadAllRooms();
     }
+
   }, []);
 
   return (
     <>
-      {/* HERO SECTION */}
       <div
         className="hero"
         style={{ backgroundImage: `url(${heroImage})` }}
@@ -64,21 +73,16 @@ function Home() {
         </div>
       </div>
 
-      {/* ROOMS NEAR YOU */}
       <section className="nearby-section">
         <h2>Rooms Near You</h2>
         <p className="nearby-subtitle">
           Affordable and verified rooms around your college
         </p>
 
-        {loading && (
-          <p className="no-rooms">Loading rooms...</p>
-        )}
+        {loading && <p className="no-rooms">Loading rooms...</p>}
 
         {!loading && rooms.length === 0 && (
-          <p className="no-rooms">
-            No rooms available right now
-          </p>
+          <p className="no-rooms">No rooms available right now</p>
         )}
 
         <div className="room-grid">
@@ -95,14 +99,10 @@ function Home() {
 
               <div className="room-info">
                 <h3>{room.title}</h3>
-                <p className="price">
-                  ₹{room.rent} / month
-                </p>
+                <p className="price">₹{room.rent} / month</p>
 
                 <button
-                  onClick={() =>
-                    navigate(`/room/${room._id}`)
-                  }
+                  onClick={() => navigate(`/room/${room._id}`)}
                 >
                   View Details
                 </button>

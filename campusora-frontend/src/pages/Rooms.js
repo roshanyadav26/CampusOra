@@ -17,20 +17,17 @@ function Rooms() {
 
   const navigate = useNavigate();
 
-  /* ================= FETCH ROOMS ================= */
   const fetchRooms = useCallback(async () => {
     try {
       const res = await api.get("/api/rooms", {
         params: filters,
       });
-
       setRooms(res.data);
     } catch (err) {
       console.log("Fetch error:", err);
     }
   }, [filters]);
 
-  /* ================= AUTO FILTER ================= */
   useEffect(() => {
     fetchRooms();
   }, [fetchRooms]);
@@ -38,9 +35,7 @@ function Rooms() {
   return (
     <div className="rooms-page">
 
-      {/* ===== FILTER BAR ===== */}
       <div className="filters">
-
         <input
           type="number"
           placeholder="Max Rent (₹)"
@@ -70,54 +65,8 @@ function Rooms() {
             setFilters({ ...filters, location: e.target.value })
           }
         />
-
-        <label>
-          <input
-            type="checkbox"
-            checked={filters.wifi}
-            onChange={(e) =>
-              setFilters({ ...filters, wifi: e.target.checked })
-            }
-          />
-          Wifi
-        </label>
-
-        <label>
-          <input
-            type="checkbox"
-            checked={filters.parking}
-            onChange={(e) =>
-              setFilters({ ...filters, parking: e.target.checked })
-            }
-          />
-          Parking
-        </label>
-
-        <label>
-          <input
-            type="checkbox"
-            checked={filters.furnished}
-            onChange={(e) =>
-              setFilters({ ...filters, furnished: e.target.checked })
-            }
-          />
-          Furnished
-        </label>
-
-        <select
-          value={filters.sort}
-          onChange={(e) =>
-            setFilters({ ...filters, sort: e.target.value })
-          }
-        >
-          <option value="">Sort</option>
-          <option value="rentLow">Price Low → High</option>
-          <option value="rentHigh">Price High → Low</option>
-        </select>
-
       </div>
 
-      {/* ===== ROOM GRID ===== */}
       <div className="room-grid">
         {rooms.length === 0 ? (
           <p>No rooms found</p>
@@ -125,7 +74,6 @@ function Rooms() {
           rooms.map((room) => (
             <div className="room-card" key={room._id}>
 
-              {/* PRICE BADGE */}
               <div className="price-badge">
                 ₹{room.rent}/month
               </div>
@@ -149,18 +97,6 @@ function Rooms() {
                 <p className="location">
                   📍 {room.address || "Location not available"}
                 </p>
-
-                <div className="amenities">
-                  {room.amenities?.wifi && (
-                    <span className="amenity-badge">Wifi</span>
-                  )}
-                  {room.amenities?.parking && (
-                    <span className="amenity-badge">Parking</span>
-                  )}
-                  {room.amenities?.furnished && (
-                    <span className="amenity-badge">Furnished</span>
-                  )}
-                </div>
 
                 <button
                   onClick={() => navigate(`/room/${room._id}`)}
