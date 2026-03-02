@@ -4,6 +4,13 @@ import api from "../api";
 import heroImage from "../assets/hero.png";
 import "./Home.css";
 
+/* ⭐ IMAGE FIX (supports old + cloudinary) */
+const getImageUrl = (img) => {
+  if (!img) return "/placeholder-room.jpg";
+  if (img.startsWith("http")) return img;
+  return `${process.env.REACT_APP_API_URL}/${img}`;
+};
+
 function Home() {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,10 +48,7 @@ function Home() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) =>
-          fetchNearby(
-            pos.coords.latitude,
-            pos.coords.longitude
-          ),
+          fetchNearby(pos.coords.latitude, pos.coords.longitude),
         () => loadAllRooms()
       );
     } else {
@@ -70,6 +74,9 @@ function Home() {
 
       <section className="nearby-section">
         <h2>Rooms Near You</h2>
+        <p className="nearby-subtitle">
+          Affordable and verified rooms around your college
+        </p>
 
         {loading && <p className="no-rooms">Loading rooms...</p>}
 
@@ -81,11 +88,7 @@ function Home() {
           {rooms.map((room) => (
             <div className="room-card" key={room._id}>
               <img
-                src={
-                  room.images?.length
-                    ? room.images[0]
-                    : "/placeholder-room.jpg"
-                }
+                src={getImageUrl(room.images?.[0])}
                 alt="Room"
               />
 

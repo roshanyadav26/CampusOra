@@ -3,6 +3,13 @@ import api from "../api";
 import { useNavigate } from "react-router-dom";
 import "./Rooms.css";
 
+/* ⭐ IMAGE FIX */
+const getImageUrl = (img) => {
+  if (!img) return "/placeholder-room.jpg";
+  if (img.startsWith("http")) return img;
+  return `${process.env.REACT_APP_API_URL}/${img}`;
+};
+
 function Rooms() {
   const [rooms, setRooms] = useState([]);
   const [filters, setFilters] = useState({
@@ -35,9 +42,7 @@ function Rooms() {
   return (
     <div className="rooms-page">
 
-      {/* ===== FILTERS ===== */}
       <div className="filters">
-
         <input
           type="number"
           placeholder="Max Rent (₹)"
@@ -69,7 +74,6 @@ function Rooms() {
         />
       </div>
 
-      {/* ===== ROOM GRID ===== */}
       <div className="room-grid">
         {rooms.length === 0 ? (
           <p>No rooms found</p>
@@ -81,13 +85,8 @@ function Rooms() {
                 ₹{room.rent}/month
               </div>
 
-              {/* ⭐ ONLY IMAGE FIX */}
               <img
-                src={
-                  room.images?.length
-                    ? room.images[0]
-                    : "/placeholder-room.jpg"
-                }
+                src={getImageUrl(room.images?.[0])}
                 alt="room"
               />
 
