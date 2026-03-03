@@ -106,6 +106,14 @@ function Home() {
           ))}
         </div>
       </section>
+
+      {/* ✅ FLOATING CHAT BUTTON */}
+      <div
+        className="floating-chat-btn"
+        onClick={() => navigate("/chat")}
+      >
+        💬
+      </div>
     </>
   );
 }

@@ -187,3 +187,27 @@
 .filter-box button:hover {
   opacity: 0.9;
 }
+/* ===== FLOATING CHAT BUTTON ===== */
+.floating-chat-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 25px;
+  width: 60px;
+  height: 60px;
+  background: #2563eb;
+  color: white;
+  font-size: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+  transition: 0.3s ease;
+}
+
+.floating-chat-btn:hover {
+  transform: scale(1.1);
+  background: #1d4ed8;
+}
