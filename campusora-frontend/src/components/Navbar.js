@@ -12,7 +12,7 @@ function Navbar() {
 
   try {
     user = JSON.parse(localStorage.getItem("user"));
-  } catch (error) {
+  } catch {
     localStorage.removeItem("user");
   }
 
@@ -27,39 +27,33 @@ function Navbar() {
       {/* LEFT */}
       <div className="nav-left">
         <h2 className="logo">CampusOra</h2>
+      </div>
 
-        {/* MOBILE MENU BUTTON */}
-        <div
-          className="hamburger"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          ☰
-        </div>
+      {/* CENTER NAV LINKS */}
+      <div className={`nav-links ${menuOpen ? "show" : ""}`}>
 
-        <div className={`nav-links ${menuOpen ? "show" : ""}`}>
-          <Link to="/">Home</Link>
-          <Link to="/about">About Us</Link>
-          <Link to="/how-it-works">How It Works</Link>
-          <Link to="/owner-dashboard">My Rooms</Link>
+        <Link to="/">Home</Link>
+        <Link to="/about">About Us</Link>
+        <Link to="/how-it-works">How It Works</Link>
+        <Link to="/owner-dashboard">My Rooms</Link>
 
-          {token && user?.role === "student" && (
-            <Link to="/rooms">Rooms</Link>
-          )}
+        {token && user?.role === "student" && (
+          <Link to="/rooms">Rooms</Link>
+        )}
 
-          {token && user?.role === "owner" && (
-            <Link to="/add-room">Add Room</Link>
-          )}
+        {token && user?.role === "owner" && (
+          <Link to="/add-room">Add Room</Link>
+        )}
 
-          {token && (
-            <Link to="/chat">Messages</Link>
-          )}
+        {token && <Link to="/chat">Messages</Link>}
 
-          <Link to="/contact">Contact</Link>
-        </div>
+        <Link to="/contact">Contact</Link>
+
       </div>
 
       {/* RIGHT */}
       <div className="nav-right">
+
         {!token && (
           <>
             <Link to="/login" className="btn-link">Login</Link>
@@ -92,6 +86,15 @@ function Navbar() {
             )}
           </div>
         )}
+
+        {/* HAMBURGER */}
+        <div
+          className="hamburger"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          ☰
+        </div>
+
       </div>
 
     </nav>
