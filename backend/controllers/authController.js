@@ -19,30 +19,32 @@ const sendOTP = async (email, otp) => {
     to: email,
     subject: "CampusOra - Verify your Email",
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-        <h2 style="color: #1f3c88; text-align: center;">Welcome to CampusOra!</h2>
-        <p style="font-size: 16px;">Please use the following OTP to verify your email address. It is valid for 10 minutes.</p>
-        <div style="text-align: center; margin: 20px 0;">
-          <strong style="font-size: 24px; color: #ffb703; padding: 10px 20px; border-radius: 5px; background: #fdf6e3; letter-spacing: 2px;">${otp}</strong>
+      <div style="font-family: Arial; max-width:500px; margin:auto; padding:20px; border:1px solid #ddd; border-radius:10px">
+        <h2 style="text-align:center;color:#1f3c88">Welcome to CampusOra</h2>
+        <p>Please verify your email using this OTP.</p>
+        <div style="text-align:center;margin:20px 0">
+          <strong style="font-size:24px;background:#fdf6e3;padding:10px 20px;border-radius:5px;letter-spacing:2px">
+            ${otp}
+          </strong>
         </div>
-        <p style="font-size: 14px; color: #777; text-align: center;">If you didn't request this, please ignore this email.</p>
+        <p style="font-size:14px;color:#777;text-align:center">
+          OTP valid for 10 minutes
+        </p>
       </div>
     `
   });
 };
 
-/* ================= REGISTER (SEND OTP) ================= */
+/* ================= REGISTER ================= */
 const register = async (req, res) => {
+  console.log("REGISTER HIT:", req.body);
+
   try {
     const { name, email, phone, password, role } = req.body;
 
     if (!name || !email || !phone || !password || !role) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    if (role === "student" && !email.endsWith("@aitpune.edu.in")) {
       return res.status(400).json({
-        message: "Students must register using college email (@aitpune.edu.in)"
+        message: "All fields are required"
       });
     }
 
@@ -51,18 +53,25 @@ const register = async (req, res) => {
     });
 
     if (existingUser) {
-      // If user exists but is not verified, we can just update their OTP and resend
       if (!existingUser.isVerified) {
+
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        await sendOTP(existingUser.email, newOtp);
+
         existingUser.verificationOTP = await bcrypt.hash(newOtp, 10);
-        existingUser.password = await bcrypt.hash(password, 10); // Update password in case they changed it
+        existingUser.password = await bcrypt.hash(password, 10);
         existingUser.name = name;
         existingUser.phone = phone;
         existingUser.role = role;
+
         await existingUser.save();
-        return res.status(200).json({ message: "Verification OTP resent to your email." });
+
+        await sendOTP(existingUser.email, newOtp);
+
+        return res.status(200).json({
+          message: "OTP resent to your email."
+        });
       }
+
       return res.status(400).json({
         message: "Email or phone already registered"
       });
@@ -75,6 +84,7 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOTP = await bcrypt.hash(otp, 10);
 
@@ -91,7 +101,7 @@ const register = async (req, res) => {
     await sendOTP(email, otp);
 
     res.status(201).json({
-      message: "Registration successful. Please check your email for the OTP.",
+      message: "Registration successful. OTP sent to email.",
       email: user.email
     });
 
@@ -107,32 +117,44 @@ const verifyEmail = async (req, res) => {
     const { email, otp } = req.body;
 
     if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP are required" });
+      return res.status(400).json({
+        message: "Email and OTP required"
+      });
     }
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found"
+      });
     }
 
     if (user.isVerified) {
-      return res.status(400).json({ message: "User is already verified" });
+      return res.status(400).json({
+        message: "User already verified"
+      });
     }
 
     const isMatch = await bcrypt.compare(otp, user.verificationOTP);
 
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid OTP" });
+      return res.status(400).json({
+        message: "Invalid OTP"
+      });
     }
 
     user.isVerified = true;
     user.verificationOTP = undefined;
+
     await user.save();
 
-    res.status(200).json({ message: "Email verified successfully! You can now log in." });
+    res.status(200).json({
+      message: "Email verified successfully"
+    });
+
   } catch (error) {
-    console.error("VERIFY OTP ERROR:", error);
+    console.error("VERIFY ERROR:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -145,17 +167,23 @@ const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({
+        message: "Invalid credentials"
+      });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({
+        message: "Invalid credentials"
+      });
     }
 
     if (!user.isVerified) {
-      return res.status(403).json({ message: "Please verify your email address to log in" });
+      return res.status(403).json({
+        message: "Please verify your email first"
+      });
     }
 
     const token = jwt.sign(
@@ -164,7 +192,7 @@ const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.status(200).json({
+    res.json({
       message: "Login successful",
       token,
       user: {
@@ -187,7 +215,9 @@ const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email: req.body.email });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found"
+      });
     }
 
     const resetToken = crypto.randomBytes(20).toString("hex");
@@ -200,7 +230,6 @@ const forgotPassword = async (req, res) => {
     const resetURL =
       `http://localhost:3000/changePassword/${resetToken}`;
 
-    // 🔥 EMAIL TRANSPORT
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -209,22 +238,20 @@ const forgotPassword = async (req, res) => {
       }
     });
 
-    // 🔥 SEND MAIL
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: user.email,
       subject: "CampusOra Password Reset",
       html: `
-        <h3>Password Reset Request</h3>
-        <p>Click below to reset your password:</p>
+        <h3>Password Reset</h3>
+        <p>Click below to reset password</p>
         <a href="${resetURL}">${resetURL}</a>
       `
     });
 
-    res.json({ message: "Reset email sent successfully" });
+    res.json({ message: "Reset email sent" });
 
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Email sending failed" });
   }
 };
@@ -238,7 +265,9 @@ const resetPassword = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ message: "Token expired or invalid" });
+      return res.status(400).json({
+        message: "Token expired or invalid"
+      });
     }
 
     const hashedPassword = await bcrypt.hash(req.body.password, 10);

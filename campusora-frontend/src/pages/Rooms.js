@@ -88,6 +88,7 @@ function Rooms() {
               <img
                 src={getImageUrl(room.images?.[0])}
                 alt="room"
+                crossOrigin="anonymous"
               />
 
               <div className="room-info">

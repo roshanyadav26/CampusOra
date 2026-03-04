@@ -74,6 +74,7 @@ function RoomDetails() {
               className="slider-main-image"
               src={getImageUrl(images[currentIndex])}
               alt="Room"
+              crossOrigin="anonymous"
             />
 
             <button className="arrow right" onClick={nextImage}>
@@ -91,6 +92,7 @@ function RoomDetails() {
               className={i === currentIndex ? "active-thumb" : ""}
               onClick={() => setCurrentIndex(i)}
               alt="thumb"
+              crossOrigin="anonymous"
             />
           ))}
         </div>

@@ -96,6 +96,7 @@ function Home() {
                 <img
                   src={getImageUrl(room.images?.[0])}
                   alt="Room"
+                  crossOrigin="anonymous"
                 />
               </div>
 
