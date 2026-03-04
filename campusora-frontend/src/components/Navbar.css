@@ -6,7 +6,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 30px;
-  flex-wrap: wrap;
+  position: relative;
 }
 
 .logo {
@@ -49,6 +49,7 @@
   font-weight: 600;
 }
 
+/* PROFILE */
 .profile-wrapper {
   position: relative;
 }
@@ -109,6 +110,46 @@
 .profile-dropdown button:hover {
   background: #dc2626;
 }
+
+/* ===== HAMBURGER ===== */
+.hamburger {
+  display: none;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 900px) {
+
+  .hamburger {
+    display: block;
+    margin-left: 10px;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    width: 100%;
+    background: #2563eb;
+    padding: 20px;
+  }
+
+  .nav-links a {
+    margin: 10px 0;
+  }
+
+  .nav-links.show {
+    display: flex;
+  }
+
+  .nav-right {
+    margin-left: auto;
+  }
+}
+
 .socials a {
   margin-right: 12px;
   font-size: 20px;

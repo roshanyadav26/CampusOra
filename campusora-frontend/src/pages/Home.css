@@ -211,3 +211,36 @@
   transform: scale(1.1);
   background: #1d4ed8;
 }
+/* ================= MOBILE RESPONSIVE FIX ================= */
+
+@media (max-width: 768px) {
+
+  .hero-title {
+    font-size: 38px;
+  }
+
+  .hero-quote {
+    font-size: 16px;
+    white-space: normal;   /* allows wrapping */
+    border-right: none;
+    width: auto;
+    animation: fadeUp 1s ease;
+  }
+
+  .nearby-section {
+    padding: 40px 20px;
+  }
+
+  .room-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .floating-chat-btn {
+    width: 55px;
+    height: 55px;
+    font-size: 22px;
+    bottom: 25px;
+    right: 20px;
+  }
+
+}
