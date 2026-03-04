@@ -51,7 +51,7 @@ function Chat() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
+   
       setConversations(res.data);
     } catch (err) {
       console.error("Conversation load error:", err);

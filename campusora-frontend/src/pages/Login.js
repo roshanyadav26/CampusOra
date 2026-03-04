@@ -40,7 +40,7 @@ function Login() {
 
       navigate("/rooms");
     } catch (err) {
-      alert("Invalid credentials");
+      alert(err.response?.data?.message || "Invalid credentials");
     }
   };
 

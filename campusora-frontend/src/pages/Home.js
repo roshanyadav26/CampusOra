@@ -64,15 +64,18 @@ function Home() {
       >
         <div className="hero-overlay">
           <div className="hero-center">
-            <h1 className="hero-title">CampusOra</h1>
-            <p className="hero-quote">
-              Find a place that feels like home, even away from home
+            <h1 className="hero-title">Welcome to CampusOra</h1>
+            <p className="hero-subtitle">
+              Discover verified, affordable rooms near your college.
             </p>
+            <button className="hero-cta" onClick={() => document.getElementById('rooms-section').scrollIntoView({ behavior: 'smooth' })}>
+              Explore Rooms
+            </button>
           </div>
         </div>
       </div>
 
-      <section className="nearby-section">
+      <section id="rooms-section" className="nearby-section">
         <h2>Rooms Near You</h2>
         <p className="nearby-subtitle">
           Affordable and verified rooms around your college
@@ -87,16 +90,33 @@ function Home() {
         <div className="room-grid">
           {rooms.map((room) => (
             <div className="room-card" key={room._id}>
-              <img
-                src={getImageUrl(room.images?.[0])}
-                alt="Room"
-              />
+              <div className="room-image-wrapper">
+                {/* Fallback Badge overlay */}
+                <div className="badge-top-left">New</div>
+                <img
+                  src={getImageUrl(room.images?.[0])}
+                  alt="Room"
+                />
+              </div>
 
               <div className="room-info">
-                <h3>{room.title}</h3>
-                <p className="price">₹{room.rent} / month</p>
+                <div className="room-header">
+                  <h3>{room.title}</h3>
+                  <span className="badge-verified">✓ Verified</span>
+                </div>
+
+                <p className="location">
+                  <span className="location-icon">📍</span> {room.address || "Near Campus"}
+                </p>
+
+                <div className="price-row">
+                  <p className="price">
+                    <span className="currency">₹</span>{room.rent} <span className="interval">/ month</span>
+                  </p>
+                </div>
 
                 <button
+                  className="btn-primary"
                   onClick={() => navigate(`/room/${room._id}`)}
                 >
                   View Details

@@ -3,7 +3,35 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
-/* ================= REGISTER ================= */
+
+/* ================= HELPER ================= */
+const sendOTP = async (email, otp) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "CampusOra - Verify your Email",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="color: #1f3c88; text-align: center;">Welcome to CampusOra!</h2>
+        <p style="font-size: 16px;">Please use the following OTP to verify your email address. It is valid for 10 minutes.</p>
+        <div style="text-align: center; margin: 20px 0;">
+          <strong style="font-size: 24px; color: #ffb703; padding: 10px 20px; border-radius: 5px; background: #fdf6e3; letter-spacing: 2px;">${otp}</strong>
+        </div>
+        <p style="font-size: 14px; color: #777; text-align: center;">If you didn't request this, please ignore this email.</p>
+      </div>
+    `
+  });
+};
+
+/* ================= REGISTER (SEND OTP) ================= */
 const register = async (req, res) => {
   try {
     const { name, email, phone, password, role } = req.body;
@@ -23,6 +51,18 @@ const register = async (req, res) => {
     });
 
     if (existingUser) {
+      // If user exists but is not verified, we can just update their OTP and resend
+      if (!existingUser.isVerified) {
+        const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        await sendOTP(existingUser.email, newOtp);
+        existingUser.verificationOTP = await bcrypt.hash(newOtp, 10);
+        existingUser.password = await bcrypt.hash(password, 10); // Update password in case they changed it
+        existingUser.name = name;
+        existingUser.phone = phone;
+        existingUser.role = role;
+        await existingUser.save();
+        return res.status(200).json({ message: "Verification OTP resent to your email." });
+      }
       return res.status(400).json({
         message: "Email or phone already registered"
       });
@@ -35,27 +75,64 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOTP = await bcrypt.hash(otp, 10);
 
     const user = await User.create({
       name,
       email,
       phone,
       password: hashedPassword,
-      role
+      role,
+      isVerified: false,
+      verificationOTP: hashedOTP
     });
 
+    await sendOTP(email, otp);
+
     res.status(201).json({
-      message: "Registration successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+      message: "Registration successful. Please check your email for the OTP.",
+      email: user.email
     });
 
   } catch (error) {
     console.error("REGISTER ERROR:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+/* ================= VERIFY EMAIL ================= */
+const verifyEmail = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: "User is already verified" });
+    }
+
+    const isMatch = await bcrypt.compare(otp, user.verificationOTP);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    user.isVerified = true;
+    user.verificationOTP = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Email verified successfully! You can now log in." });
+  } catch (error) {
+    console.error("VERIFY OTP ERROR:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -77,22 +154,26 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    if (!user.isVerified) {
+      return res.status(403).json({ message: "Please verify your email address to log in" });
+    }
+
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-   res.status(200).json({
-  message: "Login successful",
-  token,
-  user: {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role
-  }
-});
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
 
   } catch (error) {
     console.error("LOGIN ERROR:", error);
@@ -177,6 +258,7 @@ const resetPassword = async (req, res) => {
 
 module.exports = {
   register,
+  verifyEmail,
   login,
   forgotPassword,
   resetPassword
