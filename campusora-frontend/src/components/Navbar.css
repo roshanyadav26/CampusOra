@@ -33,7 +33,7 @@
   text-decoration: underline;
 }
 
-/* RIGHT */
+/* RIGHT SECTION */
 
 .nav-right {
   display: flex;
@@ -100,7 +100,7 @@
   cursor: pointer;
 }
 
-/* MOBILE */
+/* ================= MOBILE ================= */
 
 @media (max-width: 900px) {
 
@@ -112,21 +112,24 @@
     display: block;
   }
 
+  /* SMALL DROPDOWN MENU */
+
   .nav-links.show {
     position: absolute;
     top: 64px;
-    left: 0;
-    width: 100%;
+    right: 20px;
+    width: 220px;
     background: #2563eb;
     display: flex;
     flex-direction: column;
-    text-align: center;
-    padding: 10px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
   }
 
   .nav-links.show a {
-    padding: 12px 0;
-    border-top: 1px solid rgba(255,255,255,0.2);
+    padding: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
   }
 
 }
