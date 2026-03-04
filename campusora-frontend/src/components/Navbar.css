@@ -5,15 +5,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 30px;
+  padding: 0 20px;
   position: relative;
+  z-index: 1000;
 }
 
 .logo {
-  margin-right: 30px;
+  margin-right: 20px;
 }
 
 .nav-left {
+  display: flex;
+  align-items: center;
+}
+
+.nav-links {
   display: flex;
   align-items: center;
 }
@@ -49,7 +55,8 @@
   font-weight: 600;
 }
 
-/* PROFILE */
+/* ===== PROFILE ===== */
+
 .profile-wrapper {
   position: relative;
 }
@@ -112,18 +119,20 @@
 }
 
 /* ===== HAMBURGER ===== */
+
 .hamburger {
   display: none;
   font-size: 26px;
   cursor: pointer;
+  margin-left: 10px;
 }
 
-/* ===== MOBILE RESPONSIVE ===== */
+/* ================= MOBILE ================= */
+
 @media (max-width: 900px) {
 
   .hamburger {
     display: block;
-    margin-left: 10px;
   }
 
   .nav-links {
@@ -134,15 +143,18 @@
     left: 0;
     width: 100%;
     background: #2563eb;
-    padding: 20px;
-  }
-
-  .nav-links a {
-    margin: 10px 0;
+    padding: 15px 0;
+    z-index: 999;
   }
 
   .nav-links.show {
     display: flex;
+  }
+
+  .nav-links a {
+    padding: 12px 20px;
+    margin: 0;
+    border-top: 1px solid rgba(255,255,255,0.2);
   }
 
   .nav-right {
