@@ -2,68 +2,45 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
-
+const { Resend } = require("resend");
 /* ================= EMAIL TRANSPORT ================= */
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // important
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
-
-/* Verify email server */
-transporter.verify((err) => {
-  if (err) {
-    console.log("❌ Email server error:", err);
-  } else {
-    console.log("✅ Email server ready");
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /* ================= HELPER ================= */
 
 const sendOTP = async (email, otp) => {
   try {
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    await resend.emails.send({
+      from: "CampusOra <onboarding@resend.dev>",
       to: email,
       subject: "CampusOra - Verify your Email",
       html: `
-      <div style="font-family: Arial; max-width:500px; margin:auto; padding:20px; border:1px solid #ddd; border-radius:10px">
-        <h2 style="text-align:center;color:#1f3c88">Welcome to CampusOra</h2>
+        <div style="font-family:Arial;max-width:500px;margin:auto;padding:20px;border:1px solid #ddd;border-radius:10px">
+          <h2 style="text-align:center;color:#1f3c88">Welcome to CampusOra</h2>
+          <p>Please verify your email using this OTP.</p>
 
-        <p>Please verify your email using this OTP.</p>
+          <div style="text-align:center;margin:20px 0">
+            <strong style="font-size:24px;background:#fdf6e3;padding:10px 20px;border-radius:5px;letter-spacing:2px">
+              ${otp}
+            </strong>
+          </div>
 
-        <div style="text-align:center;margin:20px 0">
-          <strong style="font-size:24px;background:#fdf6e3;padding:10px 20px;border-radius:5px;letter-spacing:2px">
-            ${otp}
-          </strong>
+          <p style="font-size:14px;color:#777;text-align:center">
+            OTP valid for 10 minutes
+          </p>
         </div>
-
-        <p style="font-size:14px;color:#777;text-align:center">
-          OTP valid for 10 minutes
-        </p>
-      </div>
       `
     });
 
-    console.log("✅ OTP sent to:", email);
+    console.log("✅ OTP sent:", email);
 
   } catch (error) {
     console.error("❌ OTP email failed:", error);
     throw new Error("Email sending failed");
   }
 };
-
 /* ================= REGISTER ================= */
 
 const register = async (req, res) => {
