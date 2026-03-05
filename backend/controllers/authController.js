@@ -2,37 +2,29 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+const SibApiV3Sdk = require("sib-api-v3-sdk");
 
-/* ================= EMAIL TRANSPORT ================= */
+/* ================= BREVO EMAIL SETUP ================= */
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
-transporter.verify(function (error, success) {
-  if (error) {
-    console.log("SMTP ERROR:", error);
-  } else {
-    console.log("SMTP SERVER READY");
-  }
-});
+const client = SibApiV3Sdk.ApiClient.instance;
+const apiKey = client.authentications["api-key"];
+apiKey.apiKey = process.env.BREVO_API_KEY;
+
+const emailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
 /* ================= SEND OTP ================= */
 
 const sendOTP = async (email, otp) => {
   try {
 
-    await transporter.sendMail({
-      from: '"CampusOra" <ajayroshan25801@gmail.com>',
-      to: email,
+    await emailApi.sendTransacEmail({
+      sender: {
+        name: "CampusOra",
+        email: "ajayroshan25801@gmail.com"
+      },
+      to: [{ email }],
       subject: "CampusOra - Verify your Email",
-      html: `
+      htmlContent: `
         <div style="font-family:Arial;max-width:500px;margin:auto;padding:20px;border:1px solid #ddd;border-radius:10px">
           <h2 style="text-align:center;color:#1f3c88">Welcome to CampusOra</h2>
 
@@ -51,13 +43,11 @@ const sendOTP = async (email, otp) => {
       `
     });
 
-    console.log("✅ OTP sent to:", email);
+    console.log("✅ OTP sent:", email);
 
   } catch (error) {
-
     console.error("❌ OTP email failed:", error);
     throw new Error("Email sending failed");
-
   }
 };
 
@@ -134,13 +124,14 @@ const register = async (req, res) => {
     });
 
   } catch (error) {
-  console.error("REGISTER ERROR:", error);
-  console.error(error.stack);
 
-  res.status(500).json({
-    message: "Server error"
-  });
-}
+    console.error("REGISTER ERROR:", error);
+    console.error(error.stack);
+
+    res.status(500).json({
+      message: "Server error"
+    });
+  }
 };
 
 /* ================= VERIFY EMAIL ================= */
@@ -279,11 +270,14 @@ const forgotPassword = async (req, res) => {
     const resetURL =
       `https://campusora.vercel.app/changePassword/${resetToken}`;
 
-    await transporter.sendMail({
-      from: '"CampusOra" <ajayroshan25801@gmail.com>',
-      to: user.email,
+    await emailApi.sendTransacEmail({
+      sender: {
+        name: "CampusOra",
+        email: "ajayroshan25801@gmail.com"
+      },
+      to: [{ email: user.email }],
       subject: "CampusOra Password Reset",
-      html: `
+      htmlContent: `
         <h3>Password Reset</h3>
         <p>Click below to reset password</p>
         <a href="${resetURL}">${resetURL}</a>
