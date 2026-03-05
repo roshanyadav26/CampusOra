@@ -11,7 +11,7 @@ const app = express();
 const server = http.createServer(app);
 /* ================= CORS CONFIG ================= */
 
-cconst allowedOrigins = [
+const allowedOrigins = [
   "http://localhost:3000",
   "https://campusora.vercel.app",
   "https://campus-ora.vercel.app"
