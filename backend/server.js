@@ -14,8 +14,8 @@ const server = http.createServer(app);
 const allowedOrigins = [
   "http://localhost:3000",
   "https://campusora.vercel.app",
+  "https://campus-ora.vercel.app"
 ];
-
 app.use(
   cors({
     origin: function (origin, callback) {

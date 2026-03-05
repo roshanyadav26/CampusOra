@@ -4,42 +4,71 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 
-/* ================= HELPER ================= */
-const sendOTP = async (email, otp) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
+/* ================= EMAIL TRANSPORT ================= */
 
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "CampusOra - Verify your Email",
-    html: `
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+/* Verify email server */
+transporter.verify((err) => {
+  if (err) {
+    console.log("❌ Email server error:", err);
+  } else {
+    console.log("✅ Email server ready");
+  }
+});
+
+/* ================= HELPER ================= */
+
+const sendOTP = async (email, otp) => {
+  try {
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "CampusOra - Verify your Email",
+      html: `
       <div style="font-family: Arial; max-width:500px; margin:auto; padding:20px; border:1px solid #ddd; border-radius:10px">
         <h2 style="text-align:center;color:#1f3c88">Welcome to CampusOra</h2>
+
         <p>Please verify your email using this OTP.</p>
+
         <div style="text-align:center;margin:20px 0">
           <strong style="font-size:24px;background:#fdf6e3;padding:10px 20px;border-radius:5px;letter-spacing:2px">
             ${otp}
           </strong>
         </div>
+
         <p style="font-size:14px;color:#777;text-align:center">
           OTP valid for 10 minutes
         </p>
       </div>
-    `
-  });
+      `
+    });
+
+    console.log("✅ OTP sent to:", email);
+
+  } catch (error) {
+    console.error("❌ OTP email failed:", error);
+    throw new Error("Email sending failed");
+  }
 };
 
 /* ================= REGISTER ================= */
+
 const register = async (req, res) => {
+
   console.log("REGISTER HIT:", req.body);
 
   try {
+
     const { name, email, phone, password, role } = req.body;
 
     if (!name || !email || !phone || !password || !role) {
@@ -52,7 +81,10 @@ const register = async (req, res) => {
       $or: [{ email }, { phone }]
     });
 
+    /* ===== USER EXISTS ===== */
+
     if (existingUser) {
+
       if (!existingUser.isVerified) {
 
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -76,6 +108,8 @@ const register = async (req, res) => {
         message: "Email or phone already registered"
       });
     }
+
+    /* ===== PASSWORD CHECK ===== */
 
     if (password.length < 6) {
       return res.status(400).json({
@@ -106,14 +140,21 @@ const register = async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("REGISTER ERROR:", error);
-    res.status(500).json({ message: "Server error" });
+
+    res.status(500).json({
+      message: "Server error"
+    });
   }
 };
 
 /* ================= VERIFY EMAIL ================= */
+
 const verifyEmail = async (req, res) => {
+
   try {
+
     const { email, otp } = req.body;
 
     if (!email || !otp) {
@@ -154,14 +195,21 @@ const verifyEmail = async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("VERIFY ERROR:", error);
-    res.status(500).json({ message: "Server error" });
+
+    res.status(500).json({
+      message: "Server error"
+    });
   }
 };
 
 /* ================= LOGIN ================= */
+
 const login = async (req, res) => {
+
   try {
+
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
@@ -204,14 +252,21 @@ const login = async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("LOGIN ERROR:", error);
-    res.status(500).json({ message: "Server error" });
+
+    res.status(500).json({
+      message: "Server error"
+    });
   }
 };
 
 /* ================= FORGOT PASSWORD ================= */
+
 const forgotPassword = async (req, res) => {
+
   try {
+
     const user = await User.findOne({ email: req.body.email });
 
     if (!user) {
@@ -230,14 +285,6 @@ const forgotPassword = async (req, res) => {
     const resetURL =
       `http://localhost:3000/changePassword/${resetToken}`;
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: user.email,
@@ -252,13 +299,21 @@ const forgotPassword = async (req, res) => {
     res.json({ message: "Reset email sent" });
 
   } catch (error) {
-    res.status(500).json({ message: "Email sending failed" });
+
+    console.error("FORGOT PASSWORD ERROR:", error);
+
+    res.status(500).json({
+      message: "Email sending failed"
+    });
   }
 };
 
 /* ================= RESET PASSWORD ================= */
+
 const resetPassword = async (req, res) => {
+
   try {
+
     const user = await User.findOne({
       resetPasswordToken: req.params.token,
       resetPasswordExpire: { $gt: Date.now() }
@@ -278,10 +333,17 @@ const resetPassword = async (req, res) => {
 
     await user.save();
 
-    res.json({ message: "Password updated" });
+    res.json({
+      message: "Password updated"
+    });
 
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+
+    console.error("RESET PASSWORD ERROR:", error);
+
+    res.status(500).json({
+      message: "Server error"
+    });
   }
 };
 

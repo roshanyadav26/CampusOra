@@ -18,6 +18,7 @@ function Register() {
   const [otp, setOtp] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -66,6 +67,7 @@ function Register() {
         return;
       }
 
+      setIsLoading(true);
       const response = await api.post("/api/auth/register", formData);
       if (response.status === 200 || response.status === 201) {
         setSuccessMsg(response.data.message || "Registration initiated! Please check your email for the OTP.");
@@ -74,6 +76,8 @@ function Register() {
     } catch (err) {
       console.log(err);
       setErrorMsg(err.response?.data?.message || err.message || "Registration failed due to an unexpected error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -87,6 +91,7 @@ function Register() {
     }
 
     try {
+      setIsLoading(true);
       await api.post("/api/auth/verify-email", {
         email: formData.email,
         otp: otp
@@ -97,6 +102,8 @@ function Register() {
     } catch (err) {
       console.log(err.response?.data);
       setErrorMsg(err.response?.data?.message || "Verification failed. Invalid OTP.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -146,12 +153,13 @@ function Register() {
               type="password"
               name="password"
               placeholder="Password"
+              value={formData.password}
               onChange={handleChange}
             />
 
-            <button type="submit">
-  Verify Email
-</button>
+            <button type="submit" disabled={isLoading} style={isLoading ? { opacity: 0.7, cursor: "not-allowed" } : {}}>
+              {isLoading ? "Sending OTP..." : "Verify Email"}
+            </button>
           </form>
         ) : (
           <form className="register-form" onSubmit={handleVerifySubmit}>
@@ -176,7 +184,9 @@ function Register() {
               style={{ textAlign: "center", fontSize: "20px", letterSpacing: "4px", marginTop: "10px" }}
             />
 
-            <button type="submit" style={{ marginTop: "15px" }}>Confirm & Register</button>
+            <button type="submit" disabled={isLoading} style={{ marginTop: "15px", ...(isLoading ? { opacity: 0.7, cursor: "not-allowed" } : {}) }}>
+              {isLoading ? "Verifying..." : "Confirm & Register"}
+            </button>
             <button
               type="button"
               onClick={() => {
